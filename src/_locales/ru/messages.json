@@ -11,6 +11,9 @@
   "disable": {
     "message": "Отключить"
   },
+  "launch": {
+    "message": "Запустить"
+  },
   "options": {
     "message": "Параметры"
   },

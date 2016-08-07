@@ -114,6 +114,10 @@ var popup = {
                 desc += '\n' + 'Offline enabled: ' + extensionInfo.offlineEnabled;
             }
 
+            if (extensionInfo.appLaunchUrl) {
+                desc += '\n' + 'App launch url: ' + extensionInfo.appLaunchUrl;
+            }
+
             desc += '\n' + 'Permissions: ' + extensionInfo.permissions.join(', ');
             desc += '\n' + 'Host permissions: ' + extensionInfo.hostPermissions.join(', ');
             desc += '\n' + 'Install type: ' + extensionInfo.installType;
@@ -182,6 +186,15 @@ var popup = {
                         e.stopPropagation();
                     }],
                     append: [
+                        extensionInfo.launchType && mono.create('a', {
+                            title: _this.language.launch,
+                            href: '#launch',
+                            class: ['btn', 'launch'],
+                            on: ['click', function (e) {
+                                e.preventDefault();
+                                chrome.management.launchApp(extensionInfo.id);
+                            }]
+                        }),
                         extensionInfo.optionsUrl && mono.create('a', {
                             title: _this.language.options,
                             href: '#options',

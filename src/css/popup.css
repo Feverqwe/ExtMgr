@@ -65,7 +65,7 @@ body.loading {
     height: 19px;
 
     background-image: url(../img/remove.svg);
-    background-size: 16px;
+    background-size: 12px;
     background-repeat: no-repeat;
     background-position: center;
 
@@ -84,6 +84,22 @@ body.loading {
     cursor: pointer;
 }
 
+.btn.launch {
+    width: 19px;
+    height: 19px;
+
+    background-image: url(../img/rocket.svg);
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    cursor: pointer;
+}
+
 .row.removed .btn.options {
+    display: none;
+}
+
+.row.removed .btn.launch {
     display: none;
 }

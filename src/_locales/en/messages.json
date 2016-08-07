@@ -11,6 +11,9 @@
   "disable": {
     "message": "Disable"
   },
+  "launch": {
+    "message": "Launch"
+  },
   "options": {
     "message": "Options"
   },
