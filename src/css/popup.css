@@ -1,0 +1,89 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    font-size: 14px;
+}
+
+body.loading {
+    visibility: hidden;
+}
+
+.list {
+    width: 320px;
+}
+
+.list .category {
+    font-size: 16px;
+}
+
+.list .row {
+    display: flex;
+    width: 100%;
+    padding: 4px 0;
+}
+
+.list .row:hover {
+    background-color: #eee;
+    cursor: pointer;
+}
+
+.list .row .cell {
+    display: inline-flex;
+    margin: 0 2px;
+}
+
+.list .row .name {
+    flex: 2;
+}
+
+.list .row .icon {
+    width: 19px;
+    height: 19px;
+}
+
+.list .row .icon img {
+    width: 19px;
+    height: 19px;
+}
+
+.action {
+    cursor: default;
+}
+
+.action .btn {
+    display: inline-block;
+    cursor: pointer;
+    opacity: .5;
+}
+
+.action .btn:hover {
+    opacity: 1;
+}
+
+.btn.remove {
+    width: 19px;
+    height: 19px;
+
+    background-image: url(../img/remove.svg);
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    cursor: pointer;
+}
+
+.btn.options {
+    width: 19px;
+    height: 19px;
+
+    background-image: url(../img/options.svg);
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    cursor: pointer;
+}
+
+.row.removed .btn.options {
+    display: none;
+}

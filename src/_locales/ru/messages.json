@@ -1,0 +1,35 @@
+{
+  "appDesc": {
+    "message": "Меню для быстрого управления расширениями"
+  },
+  "lang": {
+    "message": "ru"
+  },
+  "enable": {
+    "message": "Включить"
+  },
+  "disable": {
+    "message": "Отключить"
+  },
+  "options": {
+    "message": "Параметры"
+  },
+  "uninstall": {
+    "message": "Удалить"
+  },
+  "extType_extension": {
+    "message": "Extension"
+  },
+  "extType_hosted_app": {
+    "message": "Hosted app"
+  },
+  "extType_packaged_app": {
+    "message": "Packaged app"
+  },
+  "extType_legacy_packaged_app": {
+    "message": "Legacy packaged app"
+  },
+  "extType_theme": {
+    "message": "Theme"
+  }
+}

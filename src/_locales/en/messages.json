@@ -1,0 +1,35 @@
+{
+  "appDesc": {
+    "message": "Menu for quick extensions control"
+  },
+  "lang": {
+    "message": "en"
+  },
+  "enable": {
+    "message": "Enable"
+  },
+  "disable": {
+    "message": "Disable"
+  },
+  "options": {
+    "message": "Options"
+  },
+  "uninstall": {
+    "message": "Uninstall"
+  },
+  "extType_extension": {
+    "message": "Extension"
+  },
+  "extType_hosted_app": {
+    "message": "Hosted app"
+  },
+  "extType_packaged_app": {
+    "message": "Packaged app"
+  },
+  "extType_legacy_packaged_app": {
+    "message": "Legacy packaged app"
+  },
+  "extType_theme": {
+    "message": "Theme"
+  }
+}
