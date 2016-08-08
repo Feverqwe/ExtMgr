@@ -48,20 +48,8 @@ var mono = (typeof mono !== 'undefined') ? mono : undefined;
   "use strict";
   var browserApi = function() {
     "use strict";
-    var isInject = location.protocol !== 'chrome-extension:' || location.host !== chrome.runtime.id;
-    var isBgPage = false;
-    !isInject && (function() {
-      isBgPage = location.pathname.indexOf('_generated_background_page.html') !== -1;
-
-      if (!isBgPage && chrome.runtime.hasOwnProperty('getBackgroundPage')) {
-        try {
-          chrome.runtime.getBackgroundPage(function(bgWin) {
-            isBgPage = bgWin === window;
-          });
-        } catch (e) {}
-      }
-
-    })();
+    var isInject = location.protocol !== 'chrome-extension:';
+    var isBgPage = !isInject && location.pathname.indexOf('_generated_background_page.html') !== -1;
 
     var emptyFn = function() {};
 
@@ -344,10 +332,9 @@ var mono = (typeof mono !== 'undefined') ? mono : undefined;
         }
       };
     };
-    if (chrome.storage) {
-      api.storage = initChromeStorage();
-      api.storage.sync = initChromeStorage('sync');
-    }
+
+    api.storage = initChromeStorage();
+    api.storage.sync = initChromeStorage('sync');
 
     /**
      * @param {Function} cb
