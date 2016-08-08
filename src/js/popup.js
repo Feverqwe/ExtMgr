@@ -62,14 +62,14 @@ var popup = {
      * @property {string} [appLaunchUrl]
      * @property {string} [homepageUrl]
      * @property {string} [updateUrl]
-     * @property {boolean} [offlineEnabled]
-     * @property {string} [optionsUrl]
+     * @property {boolean} offlineEnabled
+     * @property {string} optionsUrl
      * @property {[IconInfo]} [icons]
      * @property {[string]} permissions
      * @property {[string]} hostPermissions
      * @property {string} installType // "admin", "development", "normal", "sideload", or "other"
-     * @property {string} launchType // "OPEN_AS_REGULAR_TAB", "OPEN_AS_PINNED_TAB", "OPEN_AS_WINDOW", or "OPEN_FULL_SCREEN"
-     * @property {[string]} availableLaunchTypes
+     * @property {string} [launchType] // "OPEN_AS_REGULAR_TAB", "OPEN_AS_PINNED_TAB", "OPEN_AS_WINDOW", or "OPEN_FULL_SCREEN"
+     * @property {[string]} [availableLaunchTypes]
      */
     /**
      * @param {extensionInfo} extensionInfo
@@ -110,9 +110,7 @@ var popup = {
                 desc += '\n' + 'Update url: ' + extensionInfo.updateUrl;
             }
 
-            if (extensionInfo.offlineEnabled !== undefined) {
-                desc += '\n' + 'Offline enabled: ' + extensionInfo.offlineEnabled;
-            }
+            desc += '\n' + 'Offline enabled: ' + extensionInfo.offlineEnabled;
 
             if (extensionInfo.appLaunchUrl) {
                 desc += '\n' + 'App launch url: ' + extensionInfo.appLaunchUrl;
@@ -121,7 +119,10 @@ var popup = {
             desc += '\n' + 'Permissions: ' + extensionInfo.permissions.join(', ');
             desc += '\n' + 'Host permissions: ' + extensionInfo.hostPermissions.join(', ');
             desc += '\n' + 'Install type: ' + extensionInfo.installType;
-            desc += '\n' + 'Launch type: ' + extensionInfo.launchType;
+
+            if (extensionInfo.launchType) {
+                desc += '\n' + 'Launch type: ' + extensionInfo.launchType;
+            }
 
             if (!extensionInfo.enabled && extensionInfo.disabledReason) {
                 desc += '\n' + 'Disabled reason: ' + extensionInfo.disabledReason;
