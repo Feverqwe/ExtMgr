@@ -42,6 +42,14 @@ body.loading {
     line-height: 18px;
 }
 
+.list .row.category .name input {
+    width: 100%;
+}
+
+.list .row.category:not(.edit) .cell.action {
+    display: none;
+}
+
 .list .row .icon {
     width: 19px;
     height: 19px;
@@ -84,6 +92,18 @@ body.loading {
     height: 19px;
 
     background-image: url(../img/options.svg);
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    cursor: pointer;
+}
+
+.btn.save {
+    width: 19px;
+    height: 19px;
+
+    background-image: url(../img/save.svg);
     background-size: 16px;
     background-repeat: no-repeat;
     background-position: center;

@@ -295,6 +295,37 @@ var popup = {
     createCategoryNode: function (name, isCustom) {
         var _this = this;
         var checkbox = null;
+        var inputNode = null;
+        var nameNode = null;
+        var save = function () {
+            var name = inputNode.value;
+            node.classList.remove('edit');
+            var textNode = mono.create('span', {
+                text: name
+            });
+            nameNode.replaceChild(textNode, nameNode.firstChild);
+            inputNode = null;
+            _this.saveList();
+        };
+        var edit = function () {
+            if (!isCustom || node.classList.contains('edit')) {
+                return;
+            }
+            node.classList.add('edit');
+
+            inputNode = mono.create('input', {
+                value: nameNode.firstChild.textContent,
+                type: 'text',
+                on: ['keyup', function (e) {
+                    if (e.keyCode === 13) {
+                        save();
+                    }
+                }]
+            });
+            nameNode.replaceChild(inputNode, nameNode.firstChild);
+
+            inputNode.focus();
+        };
         var node = mono.create('div', {
             class: ['row', 'category'],
             on: ['updateState', function () {
@@ -323,11 +354,32 @@ var popup = {
                         })
                     ]
                 }),
-                mono.create('div', {
+                nameNode = mono.create('div', {
                     class: 'cell name',
                     append: mono.create('span', {
                         text: name
-                    })
+                    }),
+                    on: ['click', function (e) {
+                        e.preventDefault();
+                        edit();
+                    }]
+                }),
+                mono.create('div', {
+                    class: ['cell', 'action'],
+                    on: ['click', function (e) {
+                        e.stopPropagation();
+                    }],
+                    append: [
+                        mono.create('a', {
+                            title: _this.language.options,
+                            href: '#save',
+                            class: ['btn', 'save'],
+                            on: ['click', function (e) {
+                                e.preventDefault();
+                                save();
+                            }]
+                        })
+                    ]
                 })
             ]
         });

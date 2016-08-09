@@ -23,6 +23,9 @@
   "move": {
     "message": "Переместить"
   },
+  "save": {
+    "message": "Применить"
+  },
   "extType_extension": {
     "message": "Extension"
   },

@@ -23,6 +23,9 @@
   "move": {
     "message": "Move"
   },
+  "save": {
+    "message": "Save"
+  },
   "extType_extension": {
     "message": "Extension"
   },
