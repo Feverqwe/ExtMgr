@@ -299,6 +299,10 @@ var popup = {
         var nameNode = null;
         var save = function () {
             var name = inputNode.value;
+            if (!name) {
+                return;
+            }
+
             node.classList.remove('edit');
             var textNode = mono.create('span', {
                 text: name
