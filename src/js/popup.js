@@ -7,10 +7,14 @@ var popup = {
     prepare: function (cb) {
         var _this = this;
         return mono.sendMessage({action: 'prepare'}, function (response) {
-            mono.extend(_this.list, response.list);
             mono.extend(_this.language, response.language);
 
-            cb();
+            return mono.storage.sync.get({
+                list: []
+            }, function (storage) {
+                _this.list = storage.list;
+                cb();
+            });
         });
     },
     /**
@@ -442,10 +446,12 @@ var popup = {
             });
             list.push({name: name, ids: ids});
         });
-        mono.sendMessage({
-            action: 'list',
-            list: list
-        });
+        if (JSON.stringify(_this.list) !== JSON.stringify(list)) {
+            _this.list = list;
+            mono.storage.sync.set({
+                list: list
+            });
+        }
     },
     writeList: function () {
         var _this = this;
