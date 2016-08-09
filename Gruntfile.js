@@ -7,15 +7,6 @@ module.exports = function (grunt) {
             ]
         },
         copy: {
-            background: {
-                cwd: 'src/js/',
-                expand: true,
-                src: [
-                    'bg.js'
-                ],
-                dest: '<%= output %><%= vendor %><%= libFolder %>'
-            },
-
             dataJs: {
                 cwd: 'src/js/',
                 expand: true,
@@ -66,7 +57,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-compress');
 
-    grunt.registerTask('extensionBase', ['copy:background', 'copy:dataJs', 'copy:baseData', 'copy:locales']);
+    grunt.registerTask('extensionBase', ['copy:dataJs', 'copy:baseData', 'copy:locales']);
     grunt.registerTask('buildJs', ['monoPrepare']);
 
     require('./grunt/chrome.js').run(grunt);

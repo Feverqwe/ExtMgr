@@ -8,9 +8,6 @@
     },
     "default_popup": "popup.html"
   },
-  "background": {
-    "scripts": ["js/mono.js","js/bg.js"]
-  },
   "icons": {
     "16": "img/icon_16.png",
     "48": "img/icon_48.png",

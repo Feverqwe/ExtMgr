@@ -6,15 +6,11 @@ var popup = {
     language: {},
     prepare: function (cb) {
         var _this = this;
-        return mono.sendMessage({action: 'prepare'}, function (response) {
-            mono.extend(_this.language, response.language);
-
-            return mono.storage.sync.get({
-                list: []
-            }, function (storage) {
-                _this.list = storage.list;
-                cb();
-            });
+        return mono.storage.sync.get({
+            list: []
+        }, function (storage) {
+            _this.list = storage.list;
+            cb();
         });
     },
     /**
@@ -96,10 +92,10 @@ var popup = {
         var updateNodeState = function () {
             if (!extensionInfo.enabled) {
                 node.classList.add('removed');
-                checkbox.title = _this.language.enable;
+                checkbox.title = chrome.i18n.getMessage('enable');
             } else {
                 node.classList.remove('removed');
-                checkbox.title = _this.language.disable;
+                checkbox.title = chrome.i18n.getMessage('disable');
             }
 
             var desc = '';
@@ -200,7 +196,7 @@ var popup = {
                 }),
                 icon = mono.create('div', {
                     class: ['cell', 'icon'],
-                    title: _this.language.move
+                    title: chrome.i18n.getMessage('move')
                 }),
                 mono.create('div', {
                     class: ['cell', 'name'],
@@ -217,7 +213,7 @@ var popup = {
                     }],
                     append: [
                         extensionInfo.launchType && mono.create('a', {
-                            title: _this.language.launch,
+                            title: chrome.i18n.getMessage('launch'),
                             href: '#launch',
                             class: ['btn', 'launch'],
                             on: ['click', function (e) {
@@ -226,7 +222,7 @@ var popup = {
                             }]
                         }),
                         extensionInfo.optionsUrl && mono.create('a', {
-                            title: _this.language.options,
+                            title: chrome.i18n.getMessage('options'),
                             href: '#options',
                             class: ['btn', 'options'],
                             on: ['click', function (e) {
@@ -237,7 +233,7 @@ var popup = {
                             }]
                         }),
                         mono.create('a', {
-                            title: _this.language.uninstall,
+                            title: chrome.i18n.getMessage('uninstall'),
                             href: '#remove',
                             class: ['btn', 'remove'],
                             on: ['click', function (e) {
@@ -379,7 +375,7 @@ var popup = {
                     }],
                     append: [
                         mono.create('a', {
-                            title: _this.language.options,
+                            title: chrome.i18n.getMessage('options'),
                             href: '#save',
                             class: ['btn', 'save'],
                             on: ['click', function (e) {
@@ -424,7 +420,7 @@ var popup = {
         });
 
         var categoryName = name || typeList.map(function (type) {
-            return _this.language['extType_' + type] || type;
+            return chrome.i18n.getMessage('extType_' + type) || type;
         }).join(', ');
 
         if (!nodeList.length) {

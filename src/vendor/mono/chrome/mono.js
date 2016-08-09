@@ -352,46 +352,6 @@ var mono = (typeof mono !== 'undefined') ? mono : undefined;
       return clearTimeout(timeout);
     };
 
-    /**
-     * @returns {string}
-     */
-    api.getVersion = function () {
-      return chrome.runtime.getManifest().version;
-    };
-
-    /**
-     * @param {String} locale
-     * @param {Function} cb
-     */
-    api.getLanguage = function (locale, cb) {
-      var convert = function(messages) {
-        var language = {};
-        for (var key in messages) {
-          if (messages.hasOwnProperty(key)) {
-            language[key] = messages[key].message;
-          }
-        }
-        return language;
-      };
-
-      var url = '_locales/{locale}/messages.json';
-
-      mono.request({
-        url: url.replace('{locale}', locale),
-        json: true
-      }, function(err, resp, json) {
-        if (err) {
-          cb(err);
-        } else {
-          cb(null, convert(json));
-        }
-      });
-    };
-
-    api.getLoadedLocale = function () {
-      return chrome.i18n.getMessage('lang');
-    };
-
     return {
       api: api
     };
