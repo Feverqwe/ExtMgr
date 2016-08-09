@@ -12,20 +12,21 @@ body.loading {
     width: 320px;
 }
 
-.list .category {
-    font-size: 16px;
-    border-top: 1px dashed #777;
-}
-
 .list .row {
     display: flex;
     width: 100%;
     padding: 4px 0;
+    cursor: pointer;
+}
+
+.list .category {
+    font-size: 16px;
+    border-top: 1px dashed #777;
+    cursor: default;
 }
 
 .list .row:hover {
     background-color: #eee;
-    cursor: pointer;
 }
 
 .list .row .cell {

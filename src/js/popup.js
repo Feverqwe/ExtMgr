@@ -42,6 +42,16 @@ var popup = {
         return url;
     },
     /**
+     * @param {Node} prev
+     * @returns {Node}
+     */
+    getCategory: function (prev) {
+        while (prev && !prev.classList.contains('category')) {
+            prev = prev.previousElementSibling;
+        }
+        return prev;
+    },
+    /**
      * @typedef {Object} IconInfo
      * @property {number} size
      * @property {string} url
@@ -143,7 +153,7 @@ var popup = {
                 }],
                 ['changeState', function (e) {
                     checkbox.checked = e.detail.state;
-                    checkbox.dispatchEvent(new CustomEvent('change'));
+                    checkbox.dispatchEvent(new CustomEvent('change', {detail: 'byCategory'}));
                 }]
             ],
             append: [
@@ -156,17 +166,22 @@ var popup = {
                             type: 'checkbox',
                             on: [
                                 ['change', function (e) {
-                                    var _this = this;
-                                    if (_this.disabled) {
+                                    var __this = this;
+                                    if (__this.disabled) {
                                         this.checked = extensionInfo.enabled;
                                         return;
                                     }
 
-                                    _this.disabled = true;
+                                    __this.disabled = true;
                                     return chrome.management.setEnabled(extensionInfo.id, this.checked, function () {
-                                        _this.disabled = false;
-                                        extensionInfo.enabled = _this.checked;
+                                        __this.disabled = false;
+                                        extensionInfo.enabled = __this.checked;
                                         updateNodeState();
+
+                                        if (e.detail !== 'byCategory') {
+                                            var category = _this.getCategory(node);
+                                            category.dispatchEvent(new CustomEvent('updateState'));
+                                        }
                                     });
                                 }],
                                 ['click', function (e) {
@@ -208,7 +223,6 @@ var popup = {
                             class: ['btn', 'options'],
                             on: ['click', function (e) {
                                 e.preventDefault();
-                                var _this = this;
                                 chrome.tabs.create({
                                     url: extensionInfo.optionsUrl
                                 });
@@ -385,33 +399,24 @@ var popup = {
         var _this = this;
         var list = document.querySelector('.list');
 
-        var newCategory = null;
-
-        var getCategory = function ($node) {
-            var prev = $node.get(0);
-            while (prev && !prev.classList.contains('category')) {
-                prev = prev.previousElementSibling;
-            }
-            return prev;
-        };
-
-        var category = null;
+        var startCategory = null;
         $(list).sortable({
             handle: '.cell.icon',
             start: function (e, ui) {
-                category = getCategory(ui.item);
+                var item = ui.item.get(0);
+                startCategory = _this.getCategory(item);
                 list.classList.add('is-sortable');
-                newCategory = _this.createCategoryNode('Category');
-                list.insertBefore(newCategory, list.firstChild);
             },
             stop: function (e, ui) {
+                var item = ui.item.get(0);
                 list.classList.remove('is-sortable');
-                if (newCategory.nextElementSibling.classList.contains('category')) {
-                    newCategory.parentNode.removeChild(newCategory);
+                var endCategory = _this.getCategory(item);
+                if (!endCategory) {
+                    endCategory = _this.createCategoryNode('Category');
+                    list.insertBefore(endCategory, item);
                 }
-                category.dispatchEvent(new CustomEvent('updateState'));
-                newCategory = getCategory(ui.item);
-                newCategory.dispatchEvent(new CustomEvent('updateState'));
+                startCategory.dispatchEvent(new CustomEvent('updateState'));
+                endCategory.dispatchEvent(new CustomEvent('updateState'));
             }
         });
     },
@@ -435,7 +440,7 @@ var popup = {
                     });
                 }]
             }));
-        }, 0);
+        }, 250);
 
         document.body.classList.remove('loading');
     }
