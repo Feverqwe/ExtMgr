@@ -10,6 +10,9 @@ body.loading {
 
 .list {
     width: 320px;
+    min-height: 164px;
+    max-height: 480px;
+    overflow-y: auto;
 }
 
 .list .row {
