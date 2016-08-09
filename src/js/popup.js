@@ -2,12 +2,12 @@
  * Created by Anton on 07.08.2016.
  */
 var popup = {
-    preferences: {},
+    list: [],
     language: {},
     prepare: function (cb) {
         var _this = this;
         return mono.sendMessage({action: 'prepare'}, function (response) {
-            mono.extend(_this.preferences, response.preferences);
+            mono.extend(_this.list, response.list);
             mono.extend(_this.language, response.language);
 
             cb();
@@ -146,6 +146,9 @@ var popup = {
 
         var node = mono.create('div', {
             class: 'row',
+            data: {
+                id: extensionInfo.id
+            },
             on: [
                 ['click', function (e) {
                     checkbox.checked = !checkbox.checked;
@@ -285,9 +288,10 @@ var popup = {
     },
     /**
      * @param {string} name
+     * @param {boolean} isCustom
      * @returns {Element|DocumentFragment}
      */
-    createCategoryNode: function (name) {
+    createCategoryNode: function (name, isCustom) {
         var _this = this;
         var checkbox = null;
         var node = mono.create('div', {
@@ -326,6 +330,9 @@ var popup = {
                 })
             ]
         });
+        if (isCustom) {
+            node.classList.add('custom_category');
+        }
         return node;
     },
     /**
@@ -333,9 +340,10 @@ var popup = {
      * @param {[extensionInfo]} arr
      * @param {[]} type
      * @param {boolean} [invert]
+     * @param {string} [name]
      * @returns {Element|DocumentFragment}
      */
-    getListCategory: function (arr, type, invert) {
+    getListCategory: function (arr, type, invert, name) {
         var _this = this;
         var nodeList = [];
         var found;
@@ -354,18 +362,33 @@ var popup = {
             }
         });
 
-        var categoryName = typeList.map(function (type) {
+        var categoryName = name || typeList.map(function (type) {
             return _this.language['extType_' + type] || type;
         }).join(', ');
 
         if (!nodeList.length) {
             return document.createDocumentFragment();
         } else {
-            nodeList.unshift(this.createCategoryNode(categoryName));
+            nodeList.unshift(this.createCategoryNode(categoryName, !!name));
             return mono.create(document.createDocumentFragment(), {
                 append: nodeList
             });
         }
+    },
+    saveList: function () {
+        var _this = this;
+        var list = [];
+        [].slice.call(document.querySelectorAll('.list > .row.custom_category')).forEach(function (category) {
+            var name = category.querySelector('.name span').textContent;
+            var ids = _this.getCategoryItems(category).map(function (item) {
+                return item.dataset.id;
+            });
+            list.push({name: name, ids: ids});
+        });
+        mono.sendMessage({
+            action: 'list',
+            list: list
+        });
     },
     writeList: function () {
         var _this = this;
@@ -379,6 +402,20 @@ var popup = {
             }).filter(function (item) {
                 return excludeIdList.indexOf(item.id) === -1;
             });
+
+            _this.list.forEach(function (item) {
+                var list = result.slice(0).filter(function (_item) {
+                    var exists = item.ids.indexOf(_item.id) !== -1;
+                    if (exists) {
+                        var pos = result.indexOf(_item);
+                        result.splice(pos, 1);
+                    }
+                    return exists;
+                });
+                var category = _this.getListCategory(list, [], true, item.name);
+                node.appendChild(category);
+            });
+
             node.appendChild(_this.getListCategory(result, ['extension']));
             node.appendChild(_this.getListCategory(result, ['hosted_app']));
             node.appendChild(_this.getListCategory(result, ['packaged_app']));
@@ -412,11 +449,13 @@ var popup = {
                 list.classList.remove('is-sortable');
                 var endCategory = _this.getCategory(item);
                 if (!endCategory) {
-                    endCategory = _this.createCategoryNode('Category');
+                    endCategory = _this.createCategoryNode('Category', true);
                     list.insertBefore(endCategory, item);
                 }
                 startCategory.dispatchEvent(new CustomEvent('updateState'));
                 endCategory.dispatchEvent(new CustomEvent('updateState'));
+
+                _this.saveList();
             }
         });
     },

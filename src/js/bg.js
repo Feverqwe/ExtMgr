@@ -2,19 +2,15 @@
  * Created by Anton on 07.08.2016.
  */
 var bg = {
-    preferences: {},
     language: {},
     prepare: function (cb) {
         var _this = this;
-        var keys = Object.keys(_this.preferences);
+        var keys = [];
 
         var lsKey = bg.liteStorage.getStorageKey();
         keys.push(lsKey);
         return mono.storage.get(keys, function (storage) {
             bg.liteStorage.setStorage(storage);
-            delete storage[lsKey];
-
-            mono.extend(_this.preferences, storage);
 
             return mono.getLanguage(mono.getLoadedLocale(), function (err, language) {
                 if (err) {
@@ -34,9 +30,12 @@ var bg = {
         switch (msg.action) {
             case "prepare":
                 response({
-                    preferences: _this.preferences,
+                    list: _this.liteStorage.get('list', []),
                     language: _this.language
                 });
+                break;
+            case "list":
+                _this.liteStorage.set('list', msg.list);
                 break;
         }
     },
