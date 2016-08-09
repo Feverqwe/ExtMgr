@@ -136,10 +136,16 @@ var popup = {
 
         var node = mono.create('div', {
             class: 'row',
-            on: ['click', function (e) {
-                checkbox.checked = !checkbox.checked;
-                checkbox.dispatchEvent(new CustomEvent('change'));
-            }],
+            on: [
+                ['click', function (e) {
+                    checkbox.checked = !checkbox.checked;
+                    checkbox.dispatchEvent(new CustomEvent('change'));
+                }],
+                ['changeState', function (e) {
+                    checkbox.checked = e.detail.state;
+                    checkbox.dispatchEvent(new CustomEvent('change'));
+                }]
+            ],
             append: [
                 mono.create('div', {
                     class: ['cell', 'switch'],
@@ -242,6 +248,72 @@ var popup = {
 
         return node;
     },
+    getCategoryItems: function (node) {
+        var list = [];
+        var childNode = node;
+        do {
+            childNode = childNode.nextElementSibling;
+            if (!childNode || childNode.classList.contains('category')) {
+                break;
+            }
+            list.push(childNode);
+        } while (true);
+        return list;
+    },
+    onCategoryCheckboxChange: function (node, e) {
+        var _this = popup;
+        var detail = {state: this.checked};
+        _this.getCategoryItems(node).forEach(function (item) {
+            item.dispatchEvent(new CustomEvent('changeState', {
+                detail: detail
+            }));
+        });
+    },
+    /**
+     * @param {string} name
+     * @returns {Element|DocumentFragment}
+     */
+    createCategoryNode: function (name) {
+        var _this = this;
+        var checkbox = null;
+        var node = mono.create('div', {
+            class: ['row', 'category'],
+            on: ['updateState', function () {
+                var isChecked = false;
+                var list = _this.getCategoryItems(this);
+                list.some(function (item) {
+                    if (!item.classList.contains('removed')) {
+                        isChecked = true;
+                        return true;
+                    }
+                });
+                checkbox.checked = isChecked;
+                if (list.length === 0) {
+                    node.parentNode.removeChild(node);
+                }
+            }],
+            append: [
+                mono.create('div', {
+                    class: ['cell', 'switch'],
+                    append: [
+                        checkbox = mono.create('input', {
+                            type: 'checkbox',
+                            on: ['change', function () {
+                                _this.onCategoryCheckboxChange.call(this, node);
+                            }]
+                        })
+                    ]
+                }),
+                mono.create('div', {
+                    class: 'cell name',
+                    append: mono.create('span', {
+                        text: name
+                    })
+                })
+            ]
+        });
+        return node;
+    },
     /**
      *
      * @param {[extensionInfo]} arr
@@ -275,10 +347,7 @@ var popup = {
         if (!nodeList.length) {
             return document.createDocumentFragment();
         } else {
-            nodeList.unshift(mono.create('div', {
-                class: 'category',
-                text: categoryName
-            }));
+            nodeList.unshift(this.createCategoryNode(categoryName));
             return mono.create(document.createDocumentFragment(), {
                 append: nodeList
             });
@@ -289,9 +358,12 @@ var popup = {
         var node = mono.create('div', {
             class: 'list'
         });
+        var excludeIdList = [chrome.runtime.id];
         chrome.management.getAll(function (result) {
-            result.sort(function (a, b) {
+            result = result.sort(function (a, b) {
                 return a.name > b.name ? 1 : -1;
+            }).filter(function (item) {
+                return excludeIdList.indexOf(item.id) === -1;
             });
             node.appendChild(_this.getListCategory(result, ['extension']));
             node.appendChild(_this.getListCategory(result, ['hosted_app']));
@@ -303,9 +375,67 @@ var popup = {
             ], true));
         });
         document.body.appendChild(node);
+        setTimeout(function () {
+            [].slice.call(node.querySelectorAll('.category')).forEach(function (category) {
+                category.dispatchEvent(new CustomEvent('updateState'));
+            });
+        }, 100);
+    },
+    initSort: function () {
+        var _this = this;
+        var list = document.querySelector('.list');
+
+        var newCategory = null;
+
+        var getCategory = function ($node) {
+            var prev = $node.get(0);
+            while (prev && !prev.classList.contains('category')) {
+                prev = prev.previousElementSibling;
+            }
+            return prev;
+        };
+
+        var category = null;
+        $(list).sortable({
+            handle: '.cell.icon',
+            start: function (e, ui) {
+                category = getCategory(ui.item);
+                list.classList.add('is-sortable');
+                newCategory = _this.createCategoryNode('Category');
+                list.insertBefore(newCategory, list.firstChild);
+            },
+            stop: function (e, ui) {
+                list.classList.remove('is-sortable');
+                if (newCategory.nextElementSibling.classList.contains('category')) {
+                    newCategory.parentNode.removeChild(newCategory);
+                }
+                category.dispatchEvent(new CustomEvent('updateState'));
+                newCategory = getCategory(ui.item);
+                newCategory.dispatchEvent(new CustomEvent('updateState'));
+            }
+        });
     },
     run: function () {
-        this.writeList();
+        var _this = this;
+        _this.writeList();
+
+        setTimeout(function () {
+            document.head.appendChild(mono.create('script', {
+                src: './lib/require.min.js',
+                on: ['load', function () {
+                    requirejs.config({
+                        baseUrl: "./lib",
+                        paths: {
+                            jquery: 'jquery-3.1.0.min',
+                            jqueryui: 'jquery-ui.min'
+                        }
+                    });
+                    require(['jquery', 'jqueryui'], function (jq) {
+                        _this.initSort();
+                    });
+                }]
+            }));
+        }, 0);
 
         document.body.classList.remove('loading');
     }

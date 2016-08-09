@@ -14,6 +14,7 @@ body.loading {
 
 .list .category {
     font-size: 16px;
+    border-top: 1px dashed #777;
 }
 
 .list .row {
@@ -34,6 +35,10 @@ body.loading {
 
 .list .row .name {
     flex: 2;
+}
+
+.list .row.category .name {
+    line-height: 18px;
 }
 
 .list .row .icon {
