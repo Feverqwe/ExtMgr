@@ -27,18 +27,18 @@
     "message": "Применить"
   },
   "extType_extension": {
-    "message": "Extension"
+    "message": "Extensions"
   },
   "extType_hosted_app": {
-    "message": "Hosted app"
+    "message": "Hosted apps"
   },
   "extType_packaged_app": {
-    "message": "Packaged app"
+    "message": "Packaged apps"
   },
   "extType_legacy_packaged_app": {
-    "message": "Legacy packaged app"
+    "message": "Legacy packaged apps"
   },
   "extType_theme": {
-    "message": "Theme"
+    "message": "Themes"
   }
 }

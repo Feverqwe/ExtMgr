@@ -19,10 +19,14 @@ body.loading {
     cursor: pointer;
 }
 
-.list .category {
+.list .row.category {
     font-size: 16px;
     border-top: 1px dashed #777;
     cursor: default;
+}
+
+.list .row.category:first-child {
+    border-top: 0;
 }
 
 .list .row:hover {
