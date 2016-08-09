@@ -45,6 +45,7 @@ body.loading {
 .list .row .icon {
     width: 19px;
     height: 19px;
+    cursor: move;
 }
 
 .list .row .icon img {

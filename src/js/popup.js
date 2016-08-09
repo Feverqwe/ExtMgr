@@ -195,7 +195,8 @@ var popup = {
                     ]
                 }),
                 icon = mono.create('div', {
-                    class: ['cell', 'icon']
+                    class: ['cell', 'icon'],
+                    title: _this.language.move
                 }),
                 mono.create('div', {
                     class: ['cell', 'name'],

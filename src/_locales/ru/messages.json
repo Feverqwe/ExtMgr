@@ -20,6 +20,9 @@
   "uninstall": {
     "message": "Удалить"
   },
+  "move": {
+    "message": "Переместить"
+  },
   "extType_extension": {
     "message": "Extension"
   },
