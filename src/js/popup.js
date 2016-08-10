@@ -17,7 +17,7 @@ var popup = {
         };
 
         wait++;
-        mono.storage.sync.get({
+        chrome.storage.sync.get({
             list: []
         }, function (storage) {
             _this.list = storage.list;
@@ -471,7 +471,7 @@ var popup = {
         });
         if (JSON.stringify(_this.list) !== JSON.stringify(list)) {
             _this.list = list;
-            mono.storage.sync.set({
+            chrome.storage.sync.set({
                 list: list
             });
         }
