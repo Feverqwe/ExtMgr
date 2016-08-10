@@ -3,15 +3,44 @@
  */
 var popup = {
     list: [],
+    extList: [],
     language: {},
     prepare: function (cb) {
         var _this = this;
-        return mono.storage.sync.get({
+
+        var wait = 1;
+        var onReady = function () {
+            wait--;
+            if (wait === 0) {
+                cb();
+            }
+        };
+
+        wait++;
+        mono.storage.sync.get({
             list: []
         }, function (storage) {
             _this.list = storage.list;
-            cb();
+
+            onReady();
         });
+
+        var selfId = chrome.runtime.id;
+
+        wait++;
+        chrome.management.getAll(function (result) {
+            result = result.sort(function (a, b) {
+                return a.name > b.name ? 1 : -1;
+            }).filter(function (item) {
+                return item.id !== selfId;
+            });
+
+            _this.extList = result;
+
+            onReady();
+        });
+
+        onReady();
     },
     /**
      * @param {number} size
@@ -196,7 +225,12 @@ var popup = {
                 }),
                 icon = mono.create('div', {
                     class: ['cell', 'icon'],
-                    title: chrome.i18n.getMessage('move')
+                    title: chrome.i18n.getMessage('move'),
+                    append: [
+                        mono.create('img', {
+                            src: _this.getIconUrl(19, extensionInfo.icons)
+                        })
+                    ]
                 }),
                 mono.create('div', {
                     class: ['cell', 'name'],
@@ -255,12 +289,6 @@ var popup = {
                 })
             ]
         });
-
-        setTimeout(function () {
-            icon.appendChild(mono.create('img', {
-                src: _this.getIconUrl(19, extensionInfo.icons)
-            }));
-        }, 0);
 
         updateNodeState();
 
@@ -454,36 +482,31 @@ var popup = {
         var node = mono.create('div', {
             class: 'list'
         });
-        var excludeIdList = [chrome.runtime.id];
-        chrome.management.getAll(function (result) {
-            result = result.sort(function (a, b) {
-                return a.name > b.name ? 1 : -1;
-            }).filter(function (item) {
-                return excludeIdList.indexOf(item.id) === -1;
-            });
 
-            _this.list.forEach(function (item) {
-                var list = result.slice(0).filter(function (_item) {
-                    var exists = item.ids.indexOf(_item.id) !== -1;
-                    if (exists) {
-                        var pos = result.indexOf(_item);
-                        result.splice(pos, 1);
-                    }
-                    return exists;
-                });
-                var category = _this.getListCategory(list, [], true, item.name);
-                node.appendChild(category);
-            });
+        var result = _this.extList;
 
-            node.appendChild(_this.getListCategory(result, ['extension']));
-            node.appendChild(_this.getListCategory(result, ['hosted_app']));
-            node.appendChild(_this.getListCategory(result, ['packaged_app']));
-            node.appendChild(_this.getListCategory(result, ['legacy_packaged_app']));
-            node.appendChild(_this.getListCategory(result, ['theme']));
-            node.appendChild(_this.getListCategory(result, [
-                'extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'
-            ], true));
+        _this.list.forEach(function (item) {
+            var list = result.slice(0).filter(function (_item) {
+                var exists = item.ids.indexOf(_item.id) !== -1;
+                if (exists) {
+                    var pos = result.indexOf(_item);
+                    result.splice(pos, 1);
+                }
+                return exists;
+            });
+            var category = _this.getListCategory(list, [], true, item.name);
+            node.appendChild(category);
         });
+
+        node.appendChild(_this.getListCategory(result, ['extension']));
+        node.appendChild(_this.getListCategory(result, ['hosted_app']));
+        node.appendChild(_this.getListCategory(result, ['packaged_app']));
+        node.appendChild(_this.getListCategory(result, ['legacy_packaged_app']));
+        node.appendChild(_this.getListCategory(result, ['theme']));
+        node.appendChild(_this.getListCategory(result, [
+            'extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'
+        ], true));
+
         document.body.appendChild(node);
         setTimeout(function () {
             [].slice.call(node.querySelectorAll('.category')).forEach(function (category) {
@@ -522,6 +545,8 @@ var popup = {
         var _this = this;
         _this.writeList();
 
+        document.body.classList.remove('loading');
+
         setTimeout(function () {
             document.head.appendChild(mono.create('script', {
                 src: './lib/require.min.js',
@@ -539,8 +564,6 @@ var popup = {
                 }]
             }));
         }, 250);
-
-        document.body.classList.remove('loading');
     }
 };
 
