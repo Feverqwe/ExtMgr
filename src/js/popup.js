@@ -541,14 +541,6 @@ var popup = {
         }, 250);
 
         document.body.classList.remove('loading');
-
-        setTimeout(function() {
-            var popupHeight = document.body.clientHeight;
-            document.body.style.minHeight = (popupHeight + 1) + 'px';
-            setTimeout(function() {
-                document.body.style.minHeight = popupHeight + 'px';
-            }, 0);
-        }, 150);
     }
 };
 
