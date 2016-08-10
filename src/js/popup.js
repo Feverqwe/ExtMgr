@@ -115,7 +115,6 @@ var popup = {
      */
     getListItem: function (extensionInfo) {
         var _this = this;
-        var icon = null;
         var checkbox = null;
 
         var updateNodeState = function () {
@@ -223,7 +222,7 @@ var popup = {
                         })
                     ]
                 }),
-                icon = mono.create('div', {
+                mono.create('div', {
                     class: ['cell', 'icon'],
                     title: chrome.i18n.getMessage('move'),
                     append: [
@@ -483,14 +482,14 @@ var popup = {
             class: 'list'
         });
 
-        var result = _this.extList;
+        var extList = _this.extList;
 
         _this.list.forEach(function (item) {
-            var list = result.slice(0).filter(function (_item) {
+            var list = extList.slice(0).filter(function (_item) {
                 var exists = item.ids.indexOf(_item.id) !== -1;
                 if (exists) {
-                    var pos = result.indexOf(_item);
-                    result.splice(pos, 1);
+                    var pos = extList.indexOf(_item);
+                    extList.splice(pos, 1);
                 }
                 return exists;
             });
@@ -498,12 +497,12 @@ var popup = {
             node.appendChild(category);
         });
 
-        node.appendChild(_this.getListCategory(result, ['extension']));
-        node.appendChild(_this.getListCategory(result, ['hosted_app']));
-        node.appendChild(_this.getListCategory(result, ['packaged_app']));
-        node.appendChild(_this.getListCategory(result, ['legacy_packaged_app']));
-        node.appendChild(_this.getListCategory(result, ['theme']));
-        node.appendChild(_this.getListCategory(result, [
+        node.appendChild(_this.getListCategory(extList, ['extension']));
+        node.appendChild(_this.getListCategory(extList, ['hosted_app']));
+        node.appendChild(_this.getListCategory(extList, ['packaged_app']));
+        node.appendChild(_this.getListCategory(extList, ['legacy_packaged_app']));
+        node.appendChild(_this.getListCategory(extList, ['theme']));
+        node.appendChild(_this.getListCategory(extList, [
             'extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'
         ], true));
 
