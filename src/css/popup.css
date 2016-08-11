@@ -53,7 +53,11 @@ body.loading {
     width: 100%;
 }
 
-.list .row.group:not(.edit) .cell.action {
+.list .row.group:not(.edit) .btn.save {
+    display: none;
+}
+
+.list .row.group.edit .btn.edit {
     display: none;
 }
 
@@ -99,6 +103,18 @@ body.loading {
     height: 19px;
 
     background-image: url(../img/options.svg);
+    background-size: 16px;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    cursor: pointer;
+}
+
+.btn.edit {
+    width: 19px;
+    height: 19px;
+
+    background-image: url(../img/edit.svg);
     background-size: 16px;
     background-repeat: no-repeat;
     background-position: center;

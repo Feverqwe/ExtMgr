@@ -22,5 +22,8 @@
   },
   "save": {
     "message": "Save"
+  },
+  "edit": {
+    "message": "Edit"
   }
 }
