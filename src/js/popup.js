@@ -74,7 +74,7 @@ var popup = {
      * @param {Node} prev
      * @returns {Node}
      */
-    getCategory: function (prev) {
+    getGroup: function (prev) {
         while (prev && !prev.classList.contains('group')) {
             prev = prev.previousElementSibling;
         }
@@ -184,7 +184,7 @@ var popup = {
                 }],
                 ['changeState', function (e) {
                     checkbox.checked = e.detail.state;
-                    checkbox.dispatchEvent(new CustomEvent('change', {detail: 'byCategory'}));
+                    checkbox.dispatchEvent(new CustomEvent('change', {detail: 'byGroup'}));
                 }]
             ],
             append: [
@@ -209,8 +209,8 @@ var popup = {
                                         extensionInfo.enabled = __this.checked;
                                         updateNodeState();
 
-                                        if (e.detail !== 'byCategory') {
-                                            var group = _this.getCategory(node);
+                                        if (e.detail !== 'byGroup') {
+                                            var group = _this.getGroup(node);
                                             group.dispatchEvent(new CustomEvent('updateState'));
                                         }
                                     });
@@ -293,7 +293,7 @@ var popup = {
 
         return node;
     },
-    getCategoryItems: function (node) {
+    getGroupItems: function (node) {
         var list = [];
         var childNode = node;
         do {
@@ -305,10 +305,10 @@ var popup = {
         } while (true);
         return list;
     },
-    onCategoryCheckboxChange: function (node, e) {
+    onGroupCheckboxChange: function (node, e) {
         var _this = popup;
         var detail = {state: this.checked};
-        _this.getCategoryItems(node).forEach(function (item) {
+        _this.getGroupItems(node).forEach(function (item) {
             item.dispatchEvent(new CustomEvent('changeState', {
                 detail: detail
             }));
@@ -319,7 +319,7 @@ var popup = {
      * @param {boolean} isCustom
      * @returns {Element|DocumentFragment}
      */
-    createCategoryNode: function (name, isCustom) {
+    createGroupNode: function (name, isCustom) {
         var _this = this;
         var checkbox = null;
         var inputNode = null;
@@ -361,7 +361,7 @@ var popup = {
             class: ['row', 'group'],
             on: ['updateState', function () {
                 var isChecked = false;
-                var list = _this.getCategoryItems(this);
+                var list = _this.getGroupItems(this);
                 list.some(function (item) {
                     if (!item.classList.contains('removed')) {
                         isChecked = true;
@@ -380,7 +380,7 @@ var popup = {
                         checkbox = mono.create('input', {
                             type: 'checkbox',
                             on: ['change', function () {
-                                _this.onCategoryCheckboxChange.call(this, node);
+                                _this.onGroupCheckboxChange.call(this, node);
                             }]
                         })
                     ]
@@ -427,7 +427,7 @@ var popup = {
      * @param {string} [name]
      * @returns {Element|DocumentFragment}
      */
-    getListCategory: function (arr, type, invert, name) {
+    getListGroup: function (arr, type, invert, name) {
         var _this = this;
         var nodeList = [];
         var found;
@@ -453,7 +453,7 @@ var popup = {
         if (!nodeList.length) {
             return document.createDocumentFragment();
         } else {
-            nodeList.unshift(this.createCategoryNode(groupName, !!name));
+            nodeList.unshift(this.createGroupNode(groupName, !!name));
             return mono.create(document.createDocumentFragment(), {
                 append: nodeList
             });
@@ -464,7 +464,7 @@ var popup = {
         var list = [];
         [].slice.call(document.querySelectorAll('.list > .row.custom_group')).forEach(function (group) {
             var name = group.querySelector('.name span').textContent;
-            var ids = _this.getCategoryItems(group).map(function (item) {
+            var ids = _this.getGroupItems(group).map(function (item) {
                 return item.dataset.id;
             });
             list.push({name: name, ids: ids});
@@ -493,16 +493,16 @@ var popup = {
                 }
                 return exists;
             });
-            var group = _this.getListCategory(list, [], true, item.name);
+            var group = _this.getListGroup(list, [], true, item.name);
             node.appendChild(group);
         });
 
-        node.appendChild(_this.getListCategory(extList, ['extension']));
-        node.appendChild(_this.getListCategory(extList, ['hosted_app']));
-        node.appendChild(_this.getListCategory(extList, ['packaged_app']));
-        node.appendChild(_this.getListCategory(extList, ['legacy_packaged_app']));
-        node.appendChild(_this.getListCategory(extList, ['theme']));
-        node.appendChild(_this.getListCategory(extList, [
+        node.appendChild(_this.getListGroup(extList, ['extension']));
+        node.appendChild(_this.getListGroup(extList, ['hosted_app']));
+        node.appendChild(_this.getListGroup(extList, ['packaged_app']));
+        node.appendChild(_this.getListGroup(extList, ['legacy_packaged_app']));
+        node.appendChild(_this.getListGroup(extList, ['theme']));
+        node.appendChild(_this.getListGroup(extList, [
             'extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'
         ], true));
 
@@ -517,24 +517,24 @@ var popup = {
         var _this = this;
         var list = document.querySelector('.list');
 
-        var startCategory = null;
+        var startGroup = null;
         $(list).sortable({
             handle: '.cell.icon',
             start: function (e, ui) {
                 var item = ui.item.get(0);
-                startCategory = _this.getCategory(item);
+                startGroup = _this.getGroup(item);
                 list.classList.add('is-sortable');
             },
             stop: function (e, ui) {
                 var item = ui.item.get(0);
                 list.classList.remove('is-sortable');
-                var endCategory = _this.getCategory(item);
-                if (!endCategory) {
-                    endCategory = _this.createCategoryNode('Category', true);
-                    list.insertBefore(endCategory, item);
+                var endGroup = _this.getGroup(item);
+                if (!endGroup) {
+                    endGroup = _this.createGroupNode('Group', true);
+                    list.insertBefore(endGroup, item);
                 }
-                startCategory.dispatchEvent(new CustomEvent('updateState'));
-                endCategory.dispatchEvent(new CustomEvent('updateState'));
+                startGroup.dispatchEvent(new CustomEvent('updateState'));
+                endGroup.dispatchEvent(new CustomEvent('updateState'));
 
                 _this.saveList();
             }
