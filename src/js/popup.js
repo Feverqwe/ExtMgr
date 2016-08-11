@@ -446,8 +446,16 @@ var popup = {
             }
         });
 
+        var map = {
+            extension: 'Extensions',
+            hosted_app: 'Hosted apps',
+            packaged_app: 'Packaged apps',
+            legacy_packaged_app: 'Legacy packaged apps',
+            theme: 'Themes'
+        };
+
         var groupName = name || typeList.map(function (type) {
-            return chrome.i18n.getMessage('extType_' + type) || type;
+            return map[type] || type;
         }).join(', ');
 
         if (!nodeList.length) {

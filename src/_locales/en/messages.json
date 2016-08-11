@@ -2,9 +2,6 @@
   "appDesc": {
     "message": "Menu for quick extensions control"
   },
-  "lang": {
-    "message": "en"
-  },
   "enable": {
     "message": "Enable"
   },
@@ -25,20 +22,5 @@
   },
   "save": {
     "message": "Save"
-  },
-  "extType_extension": {
-    "message": "Extensions"
-  },
-  "extType_hosted_app": {
-    "message": "Hosted apps"
-  },
-  "extType_packaged_app": {
-    "message": "Packaged apps"
-  },
-  "extType_legacy_packaged_app": {
-    "message": "Legacy packaged apps"
-  },
-  "extType_theme": {
-    "message": "Themes"
   }
 }
