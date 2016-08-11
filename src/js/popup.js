@@ -75,7 +75,7 @@ var popup = {
      * @returns {Node}
      */
     getCategory: function (prev) {
-        while (prev && !prev.classList.contains('category')) {
+        while (prev && !prev.classList.contains('group')) {
             prev = prev.previousElementSibling;
         }
         return prev;
@@ -210,8 +210,8 @@ var popup = {
                                         updateNodeState();
 
                                         if (e.detail !== 'byCategory') {
-                                            var category = _this.getCategory(node);
-                                            category.dispatchEvent(new CustomEvent('updateState'));
+                                            var group = _this.getCategory(node);
+                                            group.dispatchEvent(new CustomEvent('updateState'));
                                         }
                                     });
                                 }],
@@ -298,7 +298,7 @@ var popup = {
         var childNode = node;
         do {
             childNode = childNode.nextElementSibling;
-            if (!childNode || childNode.classList.contains('category')) {
+            if (!childNode || childNode.classList.contains('group')) {
                 break;
             }
             list.push(childNode);
@@ -358,7 +358,7 @@ var popup = {
             inputNode.focus();
         };
         var node = mono.create('div', {
-            class: ['row', 'category'],
+            class: ['row', 'group'],
             on: ['updateState', function () {
                 var isChecked = false;
                 var list = _this.getCategoryItems(this);
@@ -386,7 +386,7 @@ var popup = {
                     ]
                 }),
                 nameNode = mono.create('div', {
-                    class: 'cell name',
+                    class: ['cell', 'name'],
                     append: mono.create('span', {
                         text: name
                     }),
@@ -415,7 +415,7 @@ var popup = {
             ]
         });
         if (isCustom) {
-            node.classList.add('custom_category');
+            node.classList.add('custom_group');
         }
         return node;
     },
@@ -446,14 +446,14 @@ var popup = {
             }
         });
 
-        var categoryName = name || typeList.map(function (type) {
+        var groupName = name || typeList.map(function (type) {
             return chrome.i18n.getMessage('extType_' + type) || type;
         }).join(', ');
 
         if (!nodeList.length) {
             return document.createDocumentFragment();
         } else {
-            nodeList.unshift(this.createCategoryNode(categoryName, !!name));
+            nodeList.unshift(this.createCategoryNode(groupName, !!name));
             return mono.create(document.createDocumentFragment(), {
                 append: nodeList
             });
@@ -462,9 +462,9 @@ var popup = {
     saveList: function () {
         var _this = this;
         var list = [];
-        [].slice.call(document.querySelectorAll('.list > .row.custom_category')).forEach(function (category) {
-            var name = category.querySelector('.name span').textContent;
-            var ids = _this.getCategoryItems(category).map(function (item) {
+        [].slice.call(document.querySelectorAll('.list > .row.custom_group')).forEach(function (group) {
+            var name = group.querySelector('.name span').textContent;
+            var ids = _this.getCategoryItems(group).map(function (item) {
                 return item.dataset.id;
             });
             list.push({name: name, ids: ids});
@@ -493,8 +493,8 @@ var popup = {
                 }
                 return exists;
             });
-            var category = _this.getListCategory(list, [], true, item.name);
-            node.appendChild(category);
+            var group = _this.getListCategory(list, [], true, item.name);
+            node.appendChild(group);
         });
 
         node.appendChild(_this.getListCategory(extList, ['extension']));
@@ -508,8 +508,8 @@ var popup = {
 
         document.body.appendChild(node);
         setTimeout(function () {
-            [].slice.call(node.querySelectorAll('.category')).forEach(function (category) {
-                category.dispatchEvent(new CustomEvent('updateState'));
+            [].slice.call(node.querySelectorAll('.group')).forEach(function (group) {
+                group.dispatchEvent(new CustomEvent('updateState'));
             });
         }, 100);
     },

@@ -22,13 +22,13 @@ body.loading {
     cursor: pointer;
 }
 
-.list .row.category {
+.list .row.group {
     font-size: 16px;
     border-top: 1px dashed #777;
     cursor: default;
 }
 
-.list .row.category:first-child {
+.list .row.group:first-child {
     border-top: 0;
 }
 
@@ -45,15 +45,15 @@ body.loading {
     flex: 2;
 }
 
-.list .row.category .name {
+.list .row.group .name {
     line-height: 18px;
 }
 
-.list .row.category .name input {
+.list .row.group .name input {
     width: 100%;
 }
 
-.list .row.category:not(.edit) .cell.action {
+.list .row.group:not(.edit) .cell.action {
     display: none;
 }
 
