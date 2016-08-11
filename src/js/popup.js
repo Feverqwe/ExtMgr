@@ -348,11 +348,16 @@ var popup = {
             inputNode = mono.create('input', {
                 value: nameNode.firstChild.textContent,
                 type: 'text',
-                on: ['keyup', function (e) {
-                    if (e.keyCode === 13) {
-                        save();
-                    }
-                }]
+                on: [
+                    ['keyup', function (e) {
+                        if (e.keyCode === 13) {
+                            save();
+                        }
+                    }],
+                    ['click', function (e) {
+                        e.stopPropagation();
+                    }]
+                ]
             });
             nameNode.replaceChild(inputNode, nameNode.firstChild);
 
@@ -360,20 +365,26 @@ var popup = {
         };
         var node = mono.create('div', {
             class: ['row', 'group'],
-            on: ['updateState', function () {
-                var isChecked = false;
-                var list = _this.getGroupItems(this);
-                list.some(function (item) {
-                    if (!item.classList.contains('removed')) {
-                        isChecked = true;
-                        return true;
+            on: [
+                ['click', function (e) {
+                    checkbox.checked = !checkbox.checked;
+                    checkbox.dispatchEvent(new CustomEvent('change'));
+                }],
+                ['updateState', function () {
+                    var isChecked = false;
+                    var list = _this.getGroupItems(this);
+                    list.some(function (item) {
+                        if (!item.classList.contains('removed')) {
+                            isChecked = true;
+                            return true;
+                        }
+                    });
+                    checkbox.checked = isChecked;
+                    if (list.length === 0) {
+                        node.parentNode.removeChild(node);
                     }
-                });
-                checkbox.checked = isChecked;
-                if (list.length === 0) {
-                    node.parentNode.removeChild(node);
-                }
-            }],
+                }]
+            ],
             append: [
                 mono.create('div', {
                     class: ['cell', 'switch'],
@@ -381,21 +392,24 @@ var popup = {
                         checkbox = mono.create('input', {
                             type: 'checkbox',
                             checked: !!isChecked,
-                            on: ['change', function () {
-                                _this.onGroupCheckboxChange.call(this, node);
-                            }]
+                            on: [
+                                ['change', function () {
+                                    _this.onGroupCheckboxChange.call(this, node);
+                                }],
+                                ['click', function (e) {
+                                    e.stopPropagation();
+                                }]
+                            ]
                         })
                     ]
                 }),
                 nameNode = mono.create('div', {
                     class: ['cell', 'name'],
-                    append: mono.create('span', {
-                        text: name
-                    }),
-                    on: ['click', function (e) {
-                        e.preventDefault();
-                        edit();
-                    }]
+                    append: [
+                        mono.create('span', {
+                            text: name
+                        })
+                    ]
                 }),
                 mono.create('div', {
                     class: ['cell', 'action'],
@@ -403,7 +417,16 @@ var popup = {
                         e.stopPropagation();
                     }],
                     append: [
-                        mono.create('a', {
+                        isCustom && mono.create('a', {
+                            title: chrome.i18n.getMessage('edit'),
+                            href: '#edit',
+                            class: ['btn', 'edit'],
+                            on: ['click', function (e) {
+                                e.preventDefault();
+                                edit();
+                            }]
+                        }),
+                        isCustom && mono.create('a', {
                             title: chrome.i18n.getMessage('options'),
                             href: '#save',
                             class: ['btn', 'save'],
