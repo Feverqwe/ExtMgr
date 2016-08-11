@@ -47,6 +47,7 @@ exports.run = function (grunt) {
         grunt.task.run([
             'extensionBase',
             'buildJs',
+            'closure-compiler:chrome',
             'chromeManifest',
             'compress:chrome'
         ]);

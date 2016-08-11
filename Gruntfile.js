@@ -35,6 +35,17 @@ module.exports = function (grunt) {
                 dest: '<%= output %><%= vendor %><%= dataFolder %>'
             }
         },
+        'closure-compiler': {
+            chrome: {
+                files: {
+                    '<%= output %><%= vendor %><%= dataJsFolder %>mono.js': '<%= output %><%= vendor %><%= dataJsFolder %>mono.js',
+                    '<%= output %><%= vendor %><%= dataJsFolder %>popup.js': '<%= output %><%= vendor %><%= dataJsFolder %>popup.js'
+                },
+                options: {
+                    language_in: 'ECMASCRIPT5'
+                }
+            }
+        },
         output: '<%= pkg.outputDir %>'
     });
 
@@ -53,6 +64,7 @@ module.exports = function (grunt) {
         grunt.file.write(path + fileName, content);
     });
 
+    require('google-closure-compiler').grunt(grunt);
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-compress');
