@@ -415,7 +415,7 @@ var popup = {
                         e.stopPropagation();
                     }],
                     append: [
-                        mono.create('a', {
+                        isCustom && mono.create('a', {
                             title: chrome.i18n.getMessage('edit'),
                             href: '#edit',
                             class: ['btn', 'edit'],
@@ -424,7 +424,7 @@ var popup = {
                                 edit();
                             }]
                         }),
-                        mono.create('a', {
+                        isCustom && mono.create('a', {
                             title: chrome.i18n.getMessage('options'),
                             href: '#save',
                             class: ['btn', 'save'],
