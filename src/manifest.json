@@ -1,5 +1,5 @@
 {
-  "name": "Extension switcher",
+  "name": "Extensions switcher",
   "manifest_version": 2,
   "browser_action": {
     "default_icon":  {
