@@ -552,7 +552,7 @@ var popup = {
         node.appendChild(_this.getListGroup(extList, [
             'extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'
         ], true));
-        
+
         document.body.appendChild(node);
     },
     initSort: function () {
