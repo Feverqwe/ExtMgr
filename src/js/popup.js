@@ -540,8 +540,7 @@ var popup = {
                     extList.splice(pos, 1);
                 }
             });
-            var groupNode = _this.getListGroup(list, [], true, group.name);
-            node.appendChild(groupNode);
+            node.appendChild(_this.getListGroup(list, [], true, group.name));
         });
 
         node.appendChild(_this.getListGroup(extList, ['extension']));
