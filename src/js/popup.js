@@ -517,7 +517,7 @@ var popup = {
     getGetIdList: function(list) {
         var idObj = {};
         list.forEach(function (item) {
-            idObj[item.id] = idObj;
+            idObj[item.id] = item;
         });
         return idObj;
     },
@@ -526,7 +526,6 @@ var popup = {
         var node = mono.create('div', {
             class: 'list'
         });
-        document.body.appendChild(node);
 
         var extList = _this.extList;
         var idList = _this.getGetIdList(extList);
@@ -553,6 +552,8 @@ var popup = {
         node.appendChild(_this.getListGroup(extList, [
             'extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'
         ], true));
+        
+        document.body.appendChild(node);
     },
     initSort: function () {
         var _this = this;
