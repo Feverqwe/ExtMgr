@@ -514,7 +514,7 @@ var popup = {
             });
         }
     },
-    getGetIdList: function(list) {
+    getIdList: function(list) {
         var idObj = {};
         list.forEach(function (item) {
             idObj[item.id] = item;
@@ -528,7 +528,7 @@ var popup = {
         });
 
         var extList = _this.extList;
-        var idList = _this.getGetIdList(extList);
+        var idList = _this.getIdList(extList);
 
         _this.list.forEach(function (group) {
             var list = [];
