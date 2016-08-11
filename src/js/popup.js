@@ -317,9 +317,10 @@ var popup = {
     /**
      * @param {string} name
      * @param {boolean} isCustom
+     * @param {boolean} isChecked
      * @returns {Element|DocumentFragment}
      */
-    createGroupNode: function (name, isCustom) {
+    createGroupNode: function (name, isCustom, isChecked) {
         var _this = this;
         var checkbox = null;
         var inputNode = null;
@@ -379,6 +380,7 @@ var popup = {
                     append: [
                         checkbox = mono.create('input', {
                             type: 'checkbox',
+                            checked: !!isChecked,
                             on: ['change', function () {
                                 _this.onGroupCheckboxChange.call(this, node);
                             }]
@@ -432,12 +434,17 @@ var popup = {
         var nodeList = [];
         var found;
         var typeList = [];
+        var hasEnabled = false;
         arr.forEach(function (item) {
             found = type.indexOf(item.type) !== -1;
             if (invert) {
                 found = !found;
             }
             if (found) {
+                if (item.enabled) {
+                    hasEnabled = true;
+                }
+
                 nodeList.push(_this.getListItem(item));
 
                 if (typeList.indexOf(item.type) === -1) {
@@ -461,7 +468,7 @@ var popup = {
         if (!nodeList.length) {
             return document.createDocumentFragment();
         } else {
-            nodeList.unshift(this.createGroupNode(groupName, !!name));
+            nodeList.unshift(this.createGroupNode(groupName, !!name, hasEnabled));
             return mono.create(document.createDocumentFragment(), {
                 append: nodeList
             });
@@ -484,25 +491,35 @@ var popup = {
             });
         }
     },
+    getGetIdList: function(list) {
+        var idObj = {};
+        list.forEach(function (item) {
+            idObj[item.id] = idObj;
+        });
+        return idObj;
+    },
     writeList: function () {
         var _this = this;
         var node = mono.create('div', {
             class: 'list'
         });
+        document.body.appendChild(node);
 
         var extList = _this.extList;
+        var idList = _this.getGetIdList(extList);
 
-        _this.list.forEach(function (item) {
-            var list = extList.slice(0).filter(function (_item) {
-                var exists = item.ids.indexOf(_item.id) !== -1;
-                if (exists) {
-                    var pos = extList.indexOf(_item);
+        _this.list.forEach(function (group) {
+            var list = [];
+            group.ids.forEach(function (id) {
+                var item = idList[id];
+                if (item) {
+                    list.push(item);
+                    var pos = extList.indexOf(item);
                     extList.splice(pos, 1);
                 }
-                return exists;
             });
-            var group = _this.getListGroup(list, [], true, item.name);
-            node.appendChild(group);
+            var groupNode = _this.getListGroup(list, [], true, group.name);
+            node.appendChild(groupNode);
         });
 
         node.appendChild(_this.getListGroup(extList, ['extension']));
@@ -513,13 +530,6 @@ var popup = {
         node.appendChild(_this.getListGroup(extList, [
             'extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'
         ], true));
-
-        document.body.appendChild(node);
-        setTimeout(function () {
-            [].slice.call(node.querySelectorAll('.group')).forEach(function (group) {
-                group.dispatchEvent(new CustomEvent('updateState'));
-            });
-        }, 100);
     },
     initSort: function () {
         var _this = this;
@@ -538,7 +548,7 @@ var popup = {
                 list.classList.remove('is-sortable');
                 var endGroup = _this.getGroup(item);
                 if (!endGroup) {
-                    endGroup = _this.createGroupNode('Group', true);
+                    endGroup = _this.createGroupNode('Group', true, false);
                     list.insertBefore(endGroup, item);
                 }
                 startGroup.dispatchEvent(new CustomEvent('updateState'));
