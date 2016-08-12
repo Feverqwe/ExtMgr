@@ -305,15 +305,6 @@ var popup = {
         } while (true);
         return list;
     },
-    onGroupCheckboxChange: function (node, e) {
-        var _this = popup;
-        var detail = {state: this.checked};
-        _this.getGroupItems(node).forEach(function (item) {
-            item.dispatchEvent(new CustomEvent('changeState', {
-                detail: detail
-            }));
-        });
-    },
     /**
      * @param {string} name
      * @param {boolean} isCustom
@@ -363,6 +354,15 @@ var popup = {
 
             inputNode.focus();
         };
+
+        var updateNodeState = function () {
+            if (!checkbox.checked) {
+                checkbox.title = chrome.i18n.getMessage('enable');
+            } else {
+                checkbox.title = chrome.i18n.getMessage('disable');
+            }
+        };
+
         var node = mono.create('div', {
             class: ['row', 'group'],
             on: [
@@ -383,6 +383,8 @@ var popup = {
                     if (list.length === 0) {
                         node.parentNode.removeChild(node);
                     }
+
+                    updateNodeState();
                 }]
             ],
             append: [
@@ -394,7 +396,14 @@ var popup = {
                             checked: !!isChecked,
                             on: [
                                 ['change', function () {
-                                    _this.onGroupCheckboxChange.call(this, node);
+                                    var detail = {state: this.checked};
+                                    _this.getGroupItems(node).forEach(function (item) {
+                                        item.dispatchEvent(new CustomEvent('changeState', {
+                                            detail: detail
+                                        }));
+                                    });
+
+                                    updateNodeState();
                                 }],
                                 ['click', function (e) {
                                     e.stopPropagation();
@@ -439,9 +448,13 @@ var popup = {
                 })
             ]
         });
+
         if (isCustom) {
             node.classList.add('custom_group');
         }
+
+        updateNodeState();
+
         return node;
     },
     /**
