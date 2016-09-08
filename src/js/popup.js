@@ -4,7 +4,6 @@
 var popup = {
     list: [],
     extList: [],
-    language: {},
     prepare: function (cb) {
         var _this = this;
 
@@ -436,7 +435,7 @@ var popup = {
                             }]
                         }),
                         isCustom && mono.create('a', {
-                            title: chrome.i18n.getMessage('options'),
+                            title: chrome.i18n.getMessage('save'),
                             href: '#save',
                             class: ['btn', 'save'],
                             on: ['click', function (e) {
