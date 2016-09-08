@@ -280,6 +280,8 @@ var popup = {
                                     showConfirmDialog: true
                                 }, function () {
                                     _this.classList.remove('loading');
+
+                                    window.close();
                                 });
                             }]
                         })
