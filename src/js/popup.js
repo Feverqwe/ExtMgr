@@ -557,14 +557,11 @@ var popup = {
             node.appendChild(_this.getListGroup(list, [], true, group.name));
         });
 
-        node.appendChild(_this.getListGroup(extList, ['extension']));
-        node.appendChild(_this.getListGroup(extList, ['hosted_app']));
-        node.appendChild(_this.getListGroup(extList, ['packaged_app']));
-        node.appendChild(_this.getListGroup(extList, ['legacy_packaged_app']));
-        node.appendChild(_this.getListGroup(extList, ['theme']));
-        node.appendChild(_this.getListGroup(extList, [
-            'extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'
-        ], true));
+        var typeList = ['extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'];
+        typeList.forEach(function (type) {
+            node.appendChild(_this.getListGroup(extList, [type]));
+        });
+        node.appendChild(_this.getListGroup(extList, typeList, true));
 
         document.body.appendChild(node);
     },
