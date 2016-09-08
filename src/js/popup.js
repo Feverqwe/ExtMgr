@@ -607,10 +607,11 @@ var popup = {
                         baseUrl: "./lib",
                         paths: {
                             jquery: 'jquery-3.1.0.min',
-                            jqueryui: 'jquery-ui.min'
+                            jqueryui: 'jquery-ui.min',
+                            touchpunch: 'jquery.ui.touch-punch.min'
                         }
                     });
-                    require(['jquery', 'jqueryui'], function (jq) {
+                    require(['jquery', 'jqueryui', 'touchpunch'], function (jq) {
                         _this.initSort();
                     });
                 }]
