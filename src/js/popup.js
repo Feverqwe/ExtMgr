@@ -566,20 +566,20 @@ var popup = {
 
         document.body.appendChild(node);
     },
-    initSort: function () {
+    initSort: function (Sortable) {
         var _this = this;
         var list = document.querySelector('.list');
 
         var startGroup = null;
-        $(list).sortable({
+        Sortable.create(list, {
             handle: '.cell.icon',
-            start: function (e, ui) {
-                var item = ui.item.get(0);
+            onStart: function (evt) {
+                var item = evt.item;
                 startGroup = _this.getGroup(item);
                 list.classList.add('is-sortable');
             },
-            stop: function (e, ui) {
-                var item = ui.item.get(0);
+            onEnd: function (evt) {
+                var item = evt.item;
                 list.classList.remove('is-sortable');
                 var endGroup = _this.getGroup(item);
                 if (!endGroup) {
@@ -606,13 +606,11 @@ var popup = {
                     requirejs.config({
                         baseUrl: "./lib",
                         paths: {
-                            jquery: 'jquery-3.1.0.min',
-                            jqueryui: 'jquery-ui.min',
-                            touchpunch: 'jquery.ui.touch-punch.min'
+                            sortable: 'sortable.min'
                         }
                     });
-                    require(['jquery', 'jqueryui', 'touchpunch'], function (jq) {
-                        _this.initSort();
+                    require(['sortable'], function (Sortable) {
+                        _this.initSort(Sortable);
                     });
                 }]
             }));
