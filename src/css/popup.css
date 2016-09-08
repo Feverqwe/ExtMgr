@@ -20,6 +20,7 @@ body.loading {
     width: 100%;
     padding: 4px 0;
     cursor: pointer;
+    align-items: center;
 }
 
 .list .row.group {
