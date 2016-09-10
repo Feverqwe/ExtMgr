@@ -153,3 +153,16 @@ body.loading {
 .row.removed .btn.launch {
     display: none;
 }
+
+.list::-webkit-scrollbar {
+    width: 8px;
+    background-color: #eeeeee;
+}
+
+.list::-webkit-scrollbar-track {
+    background-color: #eeeeee;
+}
+
+.list::-webkit-scrollbar-thumb {
+    background-color: #777777;
+}
