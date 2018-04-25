@@ -3,15 +3,15 @@
   "manifest_version": 2,
   "browser_action": {
     "default_icon":  {
-      "19": "img/icon_19.png",
-      "38": "img/icon_38.png"
+      "19": "icons/icon_19.png",
+      "38": "icons/icon_38.png"
     },
     "default_popup": "popup.html"
   },
   "icons": {
-    "16": "img/icon_16.png",
-    "48": "img/icon_48.png",
-    "128": "img/icon_128.png"
+    "16": "icons/icon_16.png",
+    "48": "icons/icon_48.png",
+    "128": "icons/icon_128.png"
   },
   "offline_enabled": true,
   "permissions": [ "storage", "management" ],

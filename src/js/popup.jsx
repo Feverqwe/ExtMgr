@@ -1,5 +1,6 @@
 import '../css/popup.css';
 import {types, resolveIdentifier} from 'mobx-state-tree';
+import {observer} from 'mobx-react';
 import ReactDOM from 'react-dom';
 import React from 'react';
 import sectionModel from "./model/section";
@@ -9,10 +10,18 @@ import extensionModel from "./model/extension";
 const debug = require('debug')('popup');
 const emptyIcon = require('../img/empty.svg');
 
+const extensionTypeName = {
+  extension: 'Extensions',
+  hosted_app: 'Hosted apps',
+  packaged_app: 'Packaged apps',
+  legacy_packaged_app: 'Legacy packaged apps',
+  theme: 'Themes'
+};
+
 const storeModel = types.model('storeModel', {
   state: types.optional(types.string, 'idle'), // idle, loading, done
-  sections: types.array(sectionModel),
-  extensions: types.array(extensionModel)
+  sections: types.optional(types.array(sectionModel), []),
+  extensions: types.optional(types.array(extensionModel), [])
 }).actions(self => {
   return {
     assign(obj) {
@@ -21,14 +30,14 @@ const storeModel = types.model('storeModel', {
   };
 }).views(self => {
   return {
-    getExtensionById(id) {
-      return resolveIdentifier(extensionModel, self, id);
-    },
     hasSectionExtId(id) {
       return self.sections.some(section => section.hasId(id));
     },
     excludeSectionIds(ids) {
       return ids.filter(id => !self.hasSectionExtId(id));
+    },
+    getExtensionsByType(type) {
+      return self.extensions.filter(extension => extension.type === type);
     },
     afterCreate() {
       self.assign({state: 'loading'});
@@ -38,7 +47,7 @@ const storeModel = types.model('storeModel', {
             sections: storage.list
           });
         }),
-        promisifyApi('chrome.management.getAll')(result => {
+        promisifyApi('chrome.management.getAll')().then(result => {
           self.assign({
             extensions: result
           });
@@ -57,13 +66,23 @@ const storeModel = types.model('storeModel', {
     super();
   }
   render() {
-    const sections = this.props.store.sections.map(section => {
+    const store = this.props.store;
+    const sections = store.sections.map(section => {
       return (
         <Section key={section.name} section={section}/>
       );
     });
 
-
+    ['extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'].forEach(type => {
+      const ids = store.excludeSectionIds(store.getExtensionsByType(type).map(extension => extension.id));
+      const section = sectionModel.create({
+        name: extensionTypeName[type],
+        ids: ids
+      });
+      sections.push(
+        <Section key={`computed_${type}`} section={section} computed={true}/>
+      );
+    });
 
     return (
       <div className="list">{sections}</div>
@@ -85,14 +104,14 @@ const storeModel = types.model('storeModel', {
     e.preventDefault();
   }
   render() {
-    const isCustom = this.props.isCustom;
+    const computed = this.props.computed;
     const section = this.props.section;
     const extensions = section.getExtensions().map(extension => {
       return <Extension key={extension.id} extension={extension}/>
     });
 
     const actions = [];
-    if (isCustom) {
+    if (!computed) {
       actions.push(
         <a key={'edit'} title={chrome.i18n.getMessage('edit')} href={'#edit'} onClick={this.handleEdit} className="btn edit"/>
       );
@@ -104,7 +123,7 @@ const storeModel = types.model('storeModel', {
     return [
       <div key={section.name} className="row group">
         <div className="cell switch">
-          <input typeof="checkbox" checked={section.isChecked} onChange={section.handleToggle}/>
+          <input type="checkbox" checked={section.isChecked} onChange={section.handleToggle}/>
         </div>
         <div className="cell name">
           <span>{section.name}</span>
