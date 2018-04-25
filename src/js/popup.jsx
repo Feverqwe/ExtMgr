@@ -24,6 +24,9 @@ const storeModel = types.model('storeModel', {
   extensions: types.optional(types.array(extensionModel), [])
 }).actions(self => {
   return {
+    addSection(section) {
+      self.sections.push(section);
+    },
     assign(obj) {
       Object.assign(self, obj);
     }
@@ -52,7 +55,15 @@ const storeModel = types.model('storeModel', {
             extensions: result
           });
         })
-      ]).catch(err => {
+      ]).then(() => {
+        ['extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'].forEach(type => {
+          const section = sectionModel.create({
+            computed: type,
+            name: extensionTypeName[type]
+          });
+          self.addSection(section);
+        });
+      }).catch(err => {
         debug('Loading error', err);
       }).then(() => {
         self.assign({state: 'done'});
@@ -70,17 +81,6 @@ const storeModel = types.model('storeModel', {
     const sections = store.sections.map(section => {
       return (
         <Section key={section.name} section={section}/>
-      );
-    });
-
-    ['extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'].forEach(type => {
-      const ids = store.excludeSectionIds(store.getExtensionsByType(type).map(extension => extension.id));
-      const section = sectionModel.create({
-        name: extensionTypeName[type],
-        ids: ids
-      });
-      sections.push(
-        <Section key={`computed_${type}`} section={section} computed={true}/>
       );
     });
 
@@ -104,11 +104,15 @@ const storeModel = types.model('storeModel', {
     e.preventDefault();
   }
   render() {
-    const computed = this.props.computed;
     const section = this.props.section;
+    const computed = !!section.computed;
     const extensions = section.getExtensions().map(extension => {
       return <Extension key={extension.id} extension={extension}/>
     });
+
+    if (computed && !extensions.length) {
+      return null;
+    }
 
     const actions = [];
     if (!computed) {
@@ -170,7 +174,7 @@ const storeModel = types.model('storeModel', {
           <img src={extension.getIcon(19) || emptyIcon}/>
         </div>
         <div className="cell name">
-          <span title={extension.name}/>
+          <span title={extension.name}>{extension.name}</span>
         </div>
         <div className="cell action">{actions}</div>
       </div>

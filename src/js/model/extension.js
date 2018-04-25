@@ -98,11 +98,11 @@ const extensionModel = types.model('extension', {
     getIcon(size) {
       const icons = self.icons || [];
       icons.sort((a, b) => a.size > b.size ? -1 : 1);
-      let url = icons.filter(a => a.size >= size).pop();
-      if (!url) {
-        url = icons[0];
+      let icon = icons.filter(a => a.size >= size).pop();
+      if (!icon) {
+        icon = icons[0];
       }
-      return url;
+      return icon && icon.url;
     },
     getDescription() {
       const result = [];
