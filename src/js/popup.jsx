@@ -319,4 +319,4 @@ const storeModel = types.model('storeModel', {
   }
 }
 
-export default ReactDOM.render(<Popup store={storeModel.create()}/>, document.getElementById('root'));
+export default window.popup = ReactDOM.render(<Popup store={storeModel.create()}/>, document.getElementById('root'));
