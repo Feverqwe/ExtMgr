@@ -64,28 +64,6 @@ body {
 
                         cursor: pointer;
                     }
-                    &.edit {
-                        width: 19px;
-                        height: 19px;
-
-                        background-image: url(../img/edit.svg);
-                        background-size: 16px;
-                        background-repeat: no-repeat;
-                        background-position: center;
-
-                        cursor: pointer;
-                    }
-                    &.save {
-                        width: 19px;
-                        height: 19px;
-
-                        background-image: url(../img/save.svg);
-                        background-size: 16px;
-                        background-repeat: no-repeat;
-                        background-position: center;
-
-                        cursor: pointer;
-                    }
                     &.launch {
                         width: 19px;
                         height: 19px;
@@ -107,10 +85,37 @@ body {
                 border-top: 0;
             }
             .cell {
-                .name {
+                &.name {
                     line-height: 18px;
                     input {
                         width: 100%;
+                    }
+                }
+                &.action {
+                    cursor: default;
+                    .btn {
+                        &.edit {
+                            width: 19px;
+                            height: 19px;
+
+                            background-image: url(../img/edit.svg);
+                            background-size: 16px;
+                            background-repeat: no-repeat;
+                            background-position: center;
+
+                            cursor: pointer;
+                        }
+                        &.save {
+                            width: 19px;
+                            height: 19px;
+
+                            background-image: url(../img/save.svg);
+                            background-size: 16px;
+                            background-repeat: no-repeat;
+                            background-position: center;
+
+                            cursor: pointer;
+                        }
                     }
                 }
             }
