@@ -44,10 +44,18 @@ const storeModel = types.model('storeModel', {
     },
     afterCreate() {
       self.assign({state: 'loading'});
+
+      ['extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'].forEach(type => {
+        self.addGroup(groupModel.create({
+          computed: type,
+          name: chrome.i18n.getMessage(toCameCase(type) + 'Type')
+        }));
+      });
+
       return Promise.all([
         promisifyApi('chrome.storage.sync.get')({list: []}).then(storage => {
-          self.assign({
-            groups: storage.list
+          storage.list.forEach(group => {
+            self.addGroup(group);
           });
         }),
         promisifyApi('chrome.management.getAll')().then(result => {
@@ -61,14 +69,7 @@ const storeModel = types.model('storeModel', {
             extensions: extensions
           });
         })
-      ]).then(() => {
-        ['extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'].forEach(type => {
-          self.addGroup(groupModel.create({
-            computed: type,
-            name: chrome.i18n.getMessage(toCameCase(type) + 'Type')
-          }));
-        });
-      }).catch(err => {
+      ]).catch(err => {
         debug('Loading error', err);
       }).then(() => {
         self.assign({state: 'done'});
