@@ -161,25 +161,21 @@ const extensionModel = types.model('extension', {
       });
     },
     handleToggle(e) {
-      e.stopPropagation();
       e.preventDefault();
       const newState = !self.enabled;
       return self.changeEnabled(newState);
     },
     handleLaunch(e) {
-      e.stopPropagation();
       e.preventDefault();
       chrome.management.launchApp(self.id);
     },
     handleOptions(e) {
-      e.stopPropagation();
       e.preventDefault();
       chrome.tabs.create({
         url: self.optionsUrl
       });
     },
     handleUninstall(e) {
-      e.stopPropagation();
       e.preventDefault();
       self.assign({isLoading: true});
       promisifyApi('chrome.management.uninstall')(self.id, {

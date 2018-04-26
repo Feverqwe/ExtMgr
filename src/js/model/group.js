@@ -37,7 +37,6 @@ const groupModel = types.model('group', {
       }
     },
     handleToggle(e) {
-      e.stopPropagation();
       e.preventDefault();
       const newState = !self.isChecked;
       self.assign({isLoading: true});

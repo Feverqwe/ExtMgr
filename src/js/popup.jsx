@@ -107,6 +107,7 @@ const storeModel = types.model('storeModel', {
 
     this.handleEdit = this.handleEdit.bind(this);
     this.handleSave = this.handleSave.bind(this);
+    this.handleToggle = this.handleToggle.bind(this);
     this.refExtensions = this.refExtensions.bind(this);
 
     this.sortable = null;
@@ -126,6 +127,16 @@ const storeModel = types.model('storeModel', {
     this.setState({
       editing: false
     });
+  }
+  handleToggle(e) {
+    const group = this.props.group;
+    if (e.target === this.refs.header ||
+      e.target.matches('.name span') ||
+      e.target.matches('.name') ||
+      e.target.matches('.switch')
+    ) {
+      group.handleToggle(e);
+    }
   }
   getActions() {
     const group = this.props.group;
@@ -209,7 +220,7 @@ const storeModel = types.model('storeModel', {
 
     return (
       <div className="group">
-        <div className={headerClassList.join(' ')} onClick={group.handleToggle}>
+        <div ref={'header'} className={headerClassList.join(' ')} onClick={this.handleToggle}>
           <div className="field switch">
             <input type="checkbox" checked={group.isChecked} onChange={group.handleToggle}/>
           </div>
@@ -227,6 +238,18 @@ const storeModel = types.model('storeModel', {
 @observer class Extension extends React.Component {
   constructor() {
     super();
+
+    this.handleToggle = this.handleToggle.bind(this);
+  }
+  handleToggle(e) {
+    const extension = this.props.extension;
+    if (e.target === this.refs.extension ||
+      e.target.matches('.name span') ||
+      e.target.matches('.name') ||
+      e.target.matches('.switch')
+    ) {
+      extension.handleToggle(e);
+    }
   }
   getActions() {
     /**@type Extension*/
@@ -272,11 +295,17 @@ const storeModel = types.model('storeModel', {
     }
 
     return (
-      <div id={extension.id} className={classList.join(' ')} onClick={extension.handleToggle} title={extension.getDescription()}>
+      <div ref={'extension'}
+           id={extension.id}
+           className={classList.join(' ')}
+           onClick={this.handleToggle}
+           title={extension.getDescription()}>
         <div className="field switch">
           <input type="checkbox"
                  title={extension.enabled ? chrome.i18n.getMessage('disable') : chrome.i18n.getMessage('enable')}
-                 checked={extension.enabled} disabled={!extension.mayDisable} onChange={extension.handleToggle}/>
+                 checked={extension.enabled}
+                 disabled={!extension.mayDisable}
+                 onChange={extension.handleToggle}/>
         </div>
         <div className="field icon" title={chrome.i18n.getMessage('move')}>
           <img src={extension.getIcon(19) || emptyIcon}/>
