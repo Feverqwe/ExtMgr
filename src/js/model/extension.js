@@ -9,6 +9,7 @@ import promisifyApi from "../../tools/promisifyApi";
 
 /**
  * @typedef {{}} Extension
+ * @property {boolean} isLoading
  * @property {string} id
  * @property {string} name
  * @property {string} shortName

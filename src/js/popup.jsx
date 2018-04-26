@@ -17,7 +17,7 @@ const storeModel = types.model('storeModel', {
   extensions: types.optional(types.array(extensionModel), [])
 }).actions(self => {
   return {
-    addSection(group) {
+    addGroup(group) {
       self.groups.push(group);
     },
     assign(obj) {
@@ -29,7 +29,7 @@ const storeModel = types.model('storeModel', {
     getExtensionIds() {
       return self.extensions.map(extension => extension.id);
     },
-    getExtensionsWithoutSection() {
+    getExtensionsWithoutGroup() {
       const groupExtensionIds = [];
       self.groups.forEach(group => {
         if (!group.computed) {
@@ -39,7 +39,7 @@ const storeModel = types.model('storeModel', {
       return self.extensions.filter(extensoin => groupExtensionIds.indexOf(extensoin.id) === -1);
     },
     getExtensionsByType(type) {
-      return self.getExtensionsWithoutSection().filter(extension => extension.type === type);
+      return self.getExtensionsWithoutGroup().filter(extension => extension.type === type);
     },
     afterCreate() {
       self.assign({state: 'loading'});
@@ -62,7 +62,7 @@ const storeModel = types.model('storeModel', {
         })
       ]).then(() => {
         ['extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'].forEach(type => {
-          self.addSection(groupModel.create({
+          self.addGroup(groupModel.create({
             computed: type,
             name: chrome.i18n.getMessage(toCameCase(type) + 'Type')
           }));
@@ -82,14 +82,14 @@ const storeModel = types.model('storeModel', {
   }
   render() {
     const store = this.props.store;
-    const groups = store.groups.map(group => {
+    const groups = store.groups.map((group, index) => {
       return (
-        <Group key={group.name} group={group}/>
+        <Group key={`${index}_${group.name}`} group={group}/>
       );
     });
 
     return (
-      <div className="list">{groups}</div>
+      <div className="groups">{groups}</div>
     );
   }
 }
@@ -177,7 +177,7 @@ const storeModel = types.model('storeModel', {
     }
 
     return (
-      <div key={group.name} className="group" onClick={group.handleToggle}>
+      <div className="group" onClick={group.handleToggle}>
         <div className={headerClassList.join(' ')}>
           <div className="cell switch">
             <input type="checkbox" checked={group.isChecked} onChange={group.handleToggle}/>
