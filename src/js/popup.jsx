@@ -11,6 +11,7 @@ import toCameCase from "../tools/toCameCase";
 
 const debug = require('debug')('popup');
 const emptyIcon = require('../img/empty.svg');
+const Sortable = require('sortablejs');
 
 const storeModel = types.model('storeModel', {
   state: types.optional(types.string, 'idle'), // idle, loading, done
@@ -106,6 +107,9 @@ const storeModel = types.model('storeModel', {
 
     this.handleEdit = this.handleEdit.bind(this);
     this.handleSave = this.handleSave.bind(this);
+    this.refExtensions = this.refExtensions.bind(this);
+
+    this.sortable = null;
   }
   handleEdit(e) {
     e.preventDefault();
@@ -149,6 +153,31 @@ const storeModel = types.model('storeModel', {
     }
     return actions;
   }
+  refExtensions(node) {
+    if (!node) {
+      if (this.sortable) {
+        this.sortable.destroy();
+        this.sortable = null;
+        // debug('destroy');
+      }
+    } else
+    if (this.sortable) {
+      // debug('update');
+    } else {
+      const self = this;
+      this.sortable = new Sortable(node, {
+        group: 'extensions',
+        handle: '.icon',
+        draggable: '.extension',
+        onStart() {
+          node.classList.add('sort');
+        },
+        onEnd(e) {
+          node.classList.remove('sort');
+        }
+      });
+    }
+  }
   render() {
     const group = this.props.group;
     const computed = !!group.computed;
@@ -179,15 +208,15 @@ const storeModel = types.model('storeModel', {
     }
 
     return (
-      <div className="group" onClick={group.handleToggle}>
-        <div className={headerClassList.join(' ')}>
+      <div className="group">
+        <div className={headerClassList.join(' ')} onClick={group.handleToggle}>
           <div className="field switch">
             <input type="checkbox" checked={group.isChecked} onChange={group.handleToggle}/>
           </div>
           <div className="field name">{name}</div>
           <div className="field action">{this.getActions()}</div>
         </div>
-        <div className="extension">
+        <div ref={this.refExtensions} className="extension">
           {extensions}
         </div>
       </div>
@@ -237,7 +266,7 @@ const storeModel = types.model('storeModel', {
     /**@type Extension*/
     const extension = this.props.extension;
 
-    const classList = ['item'];
+    const classList = ['item', 'extension'];
     if (extension.isLoading) {
       classList.push('loading');
     }
