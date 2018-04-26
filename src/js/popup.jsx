@@ -1,3 +1,4 @@
+import 'bootstrap/dist/css/bootstrap.css'
 import '../css/popup.less';
 import {types} from 'mobx-state-tree';
 import {observer} from 'mobx-react';
@@ -158,7 +159,7 @@ const storeModel = types.model('storeModel', {
       return null;
     }
 
-    const headerClassList = ['row', 'header'];
+    const headerClassList = ['item', 'header'];
     if (group.isLoading) {
       headerClassList.push('loading');
     }
@@ -179,11 +180,11 @@ const storeModel = types.model('storeModel', {
     return (
       <div className="group" onClick={group.handleToggle}>
         <div className={headerClassList.join(' ')}>
-          <div className="cell switch">
+          <div className="field switch">
             <input type="checkbox" checked={group.isChecked} onChange={group.handleToggle}/>
           </div>
-          <div className="cell name">{name}</div>
-          <div className="cell action">{this.getActions()}</div>
+          <div className="field name">{name}</div>
+          <div className="field action">{this.getActions()}</div>
         </div>
         <div className="extension">
           {extensions}
@@ -235,25 +236,25 @@ const storeModel = types.model('storeModel', {
     /**@type Extension*/
     const extension = this.props.extension;
 
-    const classList = ['row'];
+    const classList = ['item'];
     if (extension.isLoading) {
       classList.push('loading');
     }
 
     return (
       <div id={extension.id} className={classList.join(' ')} onClick={extension.handleToggle} title={extension.getDescription()}>
-        <div className="cell switch">
+        <div className="field switch">
           <input type="checkbox"
                  title={extension.enabled ? chrome.i18n.getMessage('disable') : chrome.i18n.getMessage('enable')}
                  checked={extension.enabled} disabled={!extension.mayDisable} onChange={extension.handleToggle}/>
         </div>
-        <div className="cell icon" title={chrome.i18n.getMessage('move')}>
+        <div className="field icon" title={chrome.i18n.getMessage('move')}>
           <img src={extension.getIcon(19) || emptyIcon}/>
         </div>
-        <div className="cell name">
+        <div className="field name">
           <span>{extension.name}</span>
         </div>
-        <div className="cell action">{this.getActions()}</div>
+        <div className="field action">{this.getActions()}</div>
       </div>
     );
   }

@@ -6,6 +6,7 @@
     "build": "webpack --mode production --config webpack.config.js"
   },
   "dependencies": {
+    "bootstrap": "^4.1.0",
     "debug": "^3.1.0",
     "mobx": "^4.2.0",
     "mobx-react": "^5.0.0",
