@@ -44,6 +44,7 @@ const extensionModelScheme = [
 ];
 
 const extensionModel = types.model('extension', {
+  isLoading: types.optional(types.boolean, false),
   id: types.identifier(types.string),
   name: types.string,
   shortName: types.maybe(types.string),
@@ -96,7 +97,7 @@ const extensionModel = types.model('extension', {
 }).views(/**Extension*/self => {
   return {
     getIcon(size) {
-      const icons = self.icons || [];
+      const icons = self.icons.slice(0) || [];
       icons.sort((a, b) => a.size > b.size ? -1 : 1);
       let icon = icons.filter(a => a.size >= size).pop();
       if (!icon) {
@@ -147,15 +148,21 @@ const extensionModel = types.model('extension', {
 
       return result.join('\n');
     },
-    handleToggle(e) {
-      e.preventDefault();
-      const state = !self.enabled;
-      promisifyApi('chrome.management.setEnabled')(self.id, state).then(() => {
+    changeEnabled(newState) {
+      self.assign({isLoading: true});
+      return promisifyApi('chrome.management.setEnabled')(self.id, newState).then(() => {
         // todo: fix me
         self.assign({
-          enabled: state
+          isLoading: false,
+          enabled: newState,
         });
       });
+    },
+    handleToggle(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      const newState = !self.enabled;
+      return self.changeEnabled(newState);
     },
     handleLaunch(e) {
       e.stopPropagation();
@@ -172,9 +179,11 @@ const extensionModel = types.model('extension', {
     handleUninstall(e) {
       e.stopPropagation();
       e.preventDefault();
+      self.assign({isLoading: true});
       promisifyApi('chrome.management.uninstall')(self.id, {
         showConfirmDialog: true
       }).then(() => {
+        self.assign({isLoading: false});
         // todo: fix me
         destroy(self);
       });

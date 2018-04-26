@@ -1,0 +1,119 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    font-size: 14px;
+}
+
+.list {
+    width: 320px;
+    min-height: 164px;
+    max-height: 480px;
+    overflow-y: auto;
+    .row {
+        display: flex;
+        width: 100%;
+        padding: 4px 0;
+        cursor: pointer;
+        align-items: center;
+        &:hover {
+            background-color: #eee;
+        }
+        .cell {
+            display: inline-flex;
+            margin: 0 2px;
+            &.icon {
+                width: 19px;
+                height: 19px;
+                cursor: move;
+                img {
+                    width: 19px;
+                    height: 19px;
+                }
+            }
+            &.name {
+                flex: 2;
+            }
+            &.action {
+                cursor: default;
+                .btn {
+                    display: inline-block;
+                    cursor: pointer;
+                    opacity: .5;
+                    &:hover {
+                        opacity: 1;
+                    }
+                    &.remove {
+                        width: 19px;
+                        height: 19px;
+
+                        background-image: url(../img/remove.svg);
+                        background-size: 12px;
+                        background-repeat: no-repeat;
+                        background-position: center;
+
+                        cursor: pointer;
+                    }
+                    &.options {
+                        width: 19px;
+                        height: 19px;
+
+                        background-image: url(../img/options.svg);
+                        background-size: 16px;
+                        background-repeat: no-repeat;
+                        background-position: center;
+
+                        cursor: pointer;
+                    }
+                    &.edit {
+                        width: 19px;
+                        height: 19px;
+
+                        background-image: url(../img/edit.svg);
+                        background-size: 16px;
+                        background-repeat: no-repeat;
+                        background-position: center;
+
+                        cursor: pointer;
+                    }
+                    &.save {
+                        width: 19px;
+                        height: 19px;
+
+                        background-image: url(../img/save.svg);
+                        background-size: 16px;
+                        background-repeat: no-repeat;
+                        background-position: center;
+
+                        cursor: pointer;
+                    }
+                    &.launch {
+                        width: 19px;
+                        height: 19px;
+
+                        background-image: url(../img/rocket.svg);
+                        background-size: 16px;
+                        background-repeat: no-repeat;
+                        background-position: center;
+
+                        cursor: pointer;
+                    }
+                }
+            }
+        }
+        &.header {
+            font-size: 16px;
+            border-top: 1px dashed #777;
+            &:first-child {
+                border-top: 0;
+            }
+            .cell {
+                .name {
+                    line-height: 18px;
+                    input {
+                        width: 100%;
+                    }
+                }
+            }
+        }
+    }
+}

@@ -25,5 +25,20 @@
   },
   "edit": {
     "message": "Редактировать"
+  },
+  "extensionType": {
+    "message": "Extensions"
+  },
+  "hostedAppType": {
+    "message": "Hosted apps"
+  },
+  "packagedAppType": {
+    "message": "Packaged apps"
+  },
+  "legacyPackagedAppType": {
+    "message": "Legacy packaged apps"
+  },
+  "themeType": {
+    "message": "Themes"
   }
 }
