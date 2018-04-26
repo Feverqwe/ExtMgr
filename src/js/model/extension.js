@@ -151,8 +151,9 @@ const extensionModel = types.model('extension', {
     },
     changeEnabled(newState) {
       self.assign({isLoading: true});
-      return promisifyApi('chrome.management.setEnabled')(self.id, newState).then(() => {
-        // todo: fix me
+      return promisifyApi('chrome.management.setEnabled')(self.id, newState).catch(err => {
+        console.error('setEnabled error', err);
+      }).then(() => {
         self.assign({
           isLoading: false,
           enabled: newState,
@@ -183,9 +184,10 @@ const extensionModel = types.model('extension', {
       self.assign({isLoading: true});
       promisifyApi('chrome.management.uninstall')(self.id, {
         showConfirmDialog: true
+      }).catch(err => {
+        console.error('uninstall error', err);
       }).then(() => {
         self.assign({isLoading: false});
-        // todo: fix me
         destroy(self);
       });
     }
