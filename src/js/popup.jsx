@@ -119,25 +119,88 @@ const storeModel = types.model('storeModel', {
   constructor() {
     super();
 
-    this.handleCreateGroup = this.handleCreateGroup.bind(this);
+    this.refGroups = this.refGroups.bind(this);
+
+    this.sortable = null;
   }
-  handleCreateGroup(name, ids) {
-    const store = this.props.store;
-    store.addGroup({
-      name,
-      ids
-    });
+  getGroupNode(prev) {
+    while (prev && !prev.classList.contains('group')) {
+      prev = prev.previousElementSibling;
+    }
+    return prev;
+  }
+  refGroups(node) {
+    if (!node) {
+      if (this.sortable) {
+        this.sortable.destroy();
+        this.sortable = null;
+        // debug('destroy');
+      }
+    } else
+    if (this.sortable) {
+      // debug('update');
+    } else {
+      const self = this;
+      const store = this.props.store;
+
+      // fix sortable bug with checkbox
+      node.getElementsByTagName = ((node, getElementsByTagName) => {
+        return tagName => {
+          if (tagName === 'input') {
+            tagName = 'null-input';
+          }
+          return getElementsByTagName.call(node, tagName);
+        }
+      })(node, node.getElementsByTagName);
+
+      this.sortable = new Sortable(node, {
+        group: 'extensions',
+        handle: '.icon',
+        draggable: '.item',
+        onUpdate(e) {
+          debug('onUpdate', e);
+
+          const itemNode = e.item;
+          const groupNode = self.getGroupNode(itemNode);
+
+          let prevNode = itemNode.previousElementSibling;
+          if (prevNode && prevNode.classList.contains('group')) {
+            prevNode = null;
+          }
+
+          let nextNode = itemNode.nextElementSibling;
+          if (nextNode && nextNode.classList.contains('group')) {
+            nextNode = null;
+          }
+
+          const id = itemNode.id;
+          const prevId = prevNode && prevNode.id;
+          const nextId = nextNode && nextNode.id;
+
+          if (!groupNode) {
+            // new group
+            store.addGroup({
+              name: 'Group',
+              ids: [id]
+            });
+          } else {
+            const group = self.refs[`group_${groupNode.dataset.index}`].props.group;
+            group.insetItem(id, prevId, nextId);
+          }
+        },
+      });
+    }
   }
   render() {
     const store = this.props.store;
     const groups = store.getGroups().map((group, index) => {
       return (
-        <Group key={`${index}_${group.name}`} group={group}/>
+        <Group ref={`group_${index}`} key={`group_${index}_${group.name}`} index={index} group={group}/>
       );
     });
 
     return (
-      <div className="groups">{groups}</div>
+      <div ref={this.refGroups} className="groups">{groups}</div>
     );
   }
 }
@@ -153,9 +216,6 @@ const storeModel = types.model('storeModel', {
     this.handleEdit = this.handleEdit.bind(this);
     this.handleSave = this.handleSave.bind(this);
     this.handleToggle = this.handleToggle.bind(this);
-    this.refExtensions = this.refExtensions.bind(this);
-
-    this.sortable = null;
   }
   handleEdit(e) {
     e.preventDefault();
@@ -209,70 +269,6 @@ const storeModel = types.model('storeModel', {
     }
     return actions;
   }
-  refExtensions(node) {
-    if (!node) {
-      if (this.sortable) {
-        this.sortable.destroy();
-        this.sortable = null;
-        // debug('destroy');
-      }
-    } else
-    if (this.sortable) {
-      // debug('update');
-    } else {
-      const self = this;
-      const group = this.props.group;
-
-      // fix sortable bug with checkbox
-      node.getElementsByTagName = ((node, getElementsByTagName) => {
-        return tagName => {
-          if (tagName === 'input') {
-            tagName = 'null-input';
-          }
-          return getElementsByTagName.call(node, tagName);
-        }
-      })(node, node.getElementsByTagName);
-
-      this.sortable = new Sortable(node, {
-        group: 'extensions',
-        handle: '.icon',
-        draggable: '.extension',
-        onStart(e) {
-          document.body.classList.add('sorting');
-        },
-        onEnd(e) {
-          document.body.classList.remove('sorting');
-        },
-        onUpdate(e) {
-          debug('onUpdate', e);
-          if (!group.computed) {
-            const itemNode = e.item;
-            const prevNode = itemNode.previousElementSibling;
-            const nextNode = itemNode.nextElementSibling;
-            const id = itemNode.id;
-            const prevId = prevNode && prevNode.id;
-            const nextId = nextNode && nextNode.id;
-
-            group.moveItem(id, prevId, nextId);
-          }
-        },
-        onAdd(e) {
-          debug('onAdd', e);
-
-          e.from.appendChild(e.item);
-        },
-        onRemove(e) {
-          debug('onRemove', e);
-          const itemNode = e.item;
-          const id = itemNode.id;
-
-          e.from.appendChild(e.item);
-
-          group.removeItem(id);
-        },
-      });
-    }
-  }
   render() {
     const group = this.props.group;
     const computed = !!group.computed;
@@ -284,7 +280,7 @@ const storeModel = types.model('storeModel', {
       return null;
     }
 
-    const headerClassList = ['item', 'header'];
+    const headerClassList = ['item', 'group'];
     if (group.isLoading) {
       headerClassList.push('loading');
     }
@@ -302,20 +298,16 @@ const storeModel = types.model('storeModel', {
       );
     }
 
-    return (
-      <div className="group">
-        <div ref={'header'} className={headerClassList.join(' ')} onClick={this.handleToggle}>
-          <div className="field switch">
-            <input type="checkbox" checked={group.isChecked} onChange={group.handleToggle}/>
-          </div>
-          <div className="field name">{name}</div>
-          <div className="field action">{this.getActions()}</div>
+    return [
+      <div key={'group'} data-index={this.props.index} className={headerClassList.join(' ')} onClick={this.handleToggle}>
+        <div className="field switch">
+          <input type="checkbox" checked={group.isChecked} onChange={group.handleToggle}/>
         </div>
-        <div ref={this.refExtensions} className="extensions">
-          {extensions}
-        </div>
-      </div>
-    );
+        <div className="field name">{name}</div>
+        <div className="field action">{this.getActions()}</div>
+      </div>,
+      ...extensions
+    ];
   }
 }
 
