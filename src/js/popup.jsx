@@ -180,11 +180,11 @@ const storeModel = types.model('storeModel', {
         group: 'extensions',
         handle: '.icon',
         draggable: '.extension',
-        onStart() {
-          node.classList.add('sort');
+        onStart(e) {
+          document.body.classList.add('sorting');
         },
         onEnd(e) {
-          node.classList.remove('sort');
+          document.body.classList.remove('sorting');
         }
       });
     }
@@ -227,7 +227,7 @@ const storeModel = types.model('storeModel', {
           <div className="field name">{name}</div>
           <div className="field action">{this.getActions()}</div>
         </div>
-        <div ref={this.refExtensions} className="extension">
+        <div ref={this.refExtensions} className="extensions">
           {extensions}
         </div>
       </div>
