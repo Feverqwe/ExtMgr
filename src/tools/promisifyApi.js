@@ -23,11 +23,7 @@ const promisifyApi = path => {
     const {scope, endPoint: fn} = resolvePath(path);
     cache.set(path, (...args) => new Promise((resolve, reject) => scope[fn].call(scope, ...args, (...args) => {
       const err = chrome.runtime.lastError;
-      if (err) {
-        reject(err);
-      } else {
-        resolve(...args);
-      }
+      err ? reject(err) : resolve(...args);
     })));
   }
   return cache.get(path);
