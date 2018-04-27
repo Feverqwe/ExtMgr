@@ -11,6 +11,9 @@ const groupModel = types.model('group', {
     assign(obj) {
       Object.assign(self, obj);
     },
+    setIds(ids) {
+      self.ids = ids;
+    },
     setName(name) {
       self.name = name;
     }
@@ -35,6 +38,43 @@ const groupModel = types.model('group', {
       } else {
         return self.ids.map(id => resolveIdentifier(extensionModel, self, id)).filter(a => a);
       }
+    },
+    moveItem(id, prevId, nextId) {
+      if (self.computed) return;
+
+      self.removeItem(id);
+
+      self.insetItem(id, prevId, nextId);
+    },
+    removeItem(id) {
+      if (self.computed) return;
+
+      const ids = self.ids.slice(0);
+
+      const pos = ids.indexOf(id);
+      ids.splice(pos, 1);
+
+      self.setIds(ids);
+    },
+    insetItem(id, prevId, nextId) {
+      if (self.computed) return;
+
+      const ids = self.ids.slice(0);
+
+      if (prevId) {
+        const pos = ids.indexOf(prevId);
+        if (pos !== -1) {
+          ids.splice(pos + 1, 0, id);
+        }
+      } else
+      if (nextId) {
+        const pos = ids.indexOf(nextId);
+        if (pos !== -1) {
+          ids.splice(pos, 0, id);
+        }
+      }
+
+      self.setIds(ids);
     },
     handleToggle(e) {
       e.preventDefault();

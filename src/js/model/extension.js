@@ -1,4 +1,4 @@
-import {types, destroy} from "mobx-state-tree";
+import {types} from "mobx-state-tree";
 import promisifyApi from "../../tools/promisifyApi";
 
 /**
@@ -184,7 +184,6 @@ const extensionModel = types.model('extension', {
         console.error('uninstall error', err);
       }).then(() => {
         self.assign({isLoading: false});
-        destroy(self);
       });
     }
   };

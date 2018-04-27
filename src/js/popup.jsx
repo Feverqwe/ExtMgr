@@ -1,6 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.css'
 import '../css/popup.less';
-import {types} from 'mobx-state-tree';
+import {types, resolveIdentifier, destroy} from 'mobx-state-tree';
 import {observer} from 'mobx-react';
 import ReactDOM from 'react-dom';
 import React from 'react';
@@ -22,12 +22,34 @@ const storeModel = types.model('storeModel', {
     addGroup(group) {
       self.groups.push(group);
     },
+    addExtension(extension) {
+      self.extensions.push(extension);
+    },
+    removeExtension(id) {
+      const extension = self.getExtensionById(id);
+      if (extension) {
+        destroy(extension);
+      }
+    },
     assign(obj) {
       Object.assign(self, obj);
     }
   };
 }).views(self => {
+  const handleInstalledListener = extension => {
+    const exists = !!self.getExtensionById(extension.id);
+    if (!exists) {
+      self.addExtension(extension);
+    }
+  };
+  const handleUninstalledListener = id => {
+    self.removeExtension(id);
+  };
+
   return {
+    getExtensionById(id) {
+      return resolveIdentifier(extensionModel, self, id);
+    },
     getExtensionIds() {
       return self.extensions.map(extension => extension.id);
     },
@@ -60,14 +82,16 @@ const storeModel = types.model('storeModel', {
           });
         }),
         promisifyApi('chrome.management.getAll')().then(result => {
+          chrome.management.onInstalled.addListener(handleInstalledListener);
+          chrome.management.onUninstalled.addListener(handleUninstalledListener);
+
           result.sort(function (a, b) {
             return a.name > b.name ? 1 : -1;
           });
-          const extensions = result.filter(extension => {
-            return extension.id !== chrome.runtime.id;
-          });
-          self.assign({
-            extensions: extensions
+          result.forEach(extension => {
+            if (extension.id !== chrome.runtime.id) {
+              self.addExtension(extension);
+            }
           });
         })
       ]).catch(err => {
@@ -176,6 +200,7 @@ const storeModel = types.model('storeModel', {
       // debug('update');
     } else {
       const self = this;
+      const group = this.props.group;
 
       // fix sortable bug with checkbox
       node.getElementsByTagName = ((node, getElementsByTagName) => {
@@ -196,7 +221,30 @@ const storeModel = types.model('storeModel', {
         },
         onEnd(e) {
           document.body.classList.remove('sorting');
-        }
+        },
+        onUpdate(e) {
+          debug('onUpdate', e);
+          if (!group.computed) {
+            const itemNode = e.item;
+            const prevNode = itemNode.previousElementSibling;
+            const nextNode = itemNode.nextElementSibling;
+            const id = itemNode.id;
+            const prevId = prevNode && prevNode.id;
+            const nextId = nextNode && nextNode.id;
+
+            group.moveItem(id, prevId, nextId);
+          }
+        },
+        onAdd(e) {
+          debug('onAdd', e);
+        },
+        onRemove(e) {
+          debug('onRemove', e);
+          const itemNode = e.item;
+          const id = itemNode.id;
+
+          group.removeItem(id);
+        },
       });
     }
   }
