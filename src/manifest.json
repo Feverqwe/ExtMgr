@@ -17,5 +17,5 @@
   "permissions": [ "storage", "management" ],
   "description": "__MSG_appDesc__",
   "default_locale": "en",
-  "version": "1.4.4"
+  "version": "1.4.6"
 }
