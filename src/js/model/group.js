@@ -50,9 +50,27 @@ const groupModel = types.model('group', {
     moveItem(id, prevId, nextId) {
       if (self.computed) return;
 
-      self.removeItem(id);
+      const ids = self.ids.slice(0);
 
-      self.insetItem(id, prevId, nextId);
+      const pos = ids.indexOf(id);
+      if (pos !== -1) {
+        ids.splice(pos, 1);
+      }
+
+      if (prevId) {
+        const pos = ids.indexOf(prevId);
+        if (pos !== -1) {
+          ids.splice(pos + 1, 0, id);
+        }
+      } else
+      if (nextId) {
+        const pos = ids.indexOf(nextId);
+        if (pos !== -1) {
+          ids.splice(pos, 0, id);
+        }
+      }
+
+      self.setIds(ids);
     },
     removeItem(id) {
       if (self.computed) return;
@@ -71,26 +89,6 @@ const groupModel = types.model('group', {
         self.setIds(ids);
       }
     },
-    insetItem(id, prevId, nextId) {
-      if (self.computed) return;
-
-      const ids = self.ids.slice(0);
-
-      if (prevId) {
-        const pos = ids.indexOf(prevId);
-        if (pos !== -1) {
-          ids.splice(pos + 1, 0, id);
-        }
-      } else
-      if (nextId) {
-        const pos = ids.indexOf(nextId);
-        if (pos !== -1) {
-          ids.splice(pos, 0, id);
-        }
-      }
-
-      self.setIds(ids);
-    },
     handleToggle(e) {
       e.preventDefault();
       const newState = !self.isChecked;
@@ -102,6 +100,10 @@ const groupModel = types.model('group', {
       }).then(() => {
         self.assign({isLoading: false});
       });
+    },
+    postProcessSnapshot(snapshot) {
+      snapshot.isLoading = undefined;
+      return snapshot;
     }
   };
 });

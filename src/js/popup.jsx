@@ -1,6 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.css'
 import '../css/popup.less';
-import {types, resolveIdentifier, destroy} from 'mobx-state-tree';
+import {types, resolveIdentifier, destroy, getSnapshot} from 'mobx-state-tree';
 import {observer} from 'mobx-react';
 import ReactDOM from 'react-dom';
 import React from 'react';
@@ -12,6 +12,8 @@ import toCameCase from "../tools/toCameCase";
 const debug = require('debug')('popup');
 const emptyIcon = require('../img/empty.svg');
 const Sortable = require('sortablejs');
+const promiseLimit = require('promise-limit');
+const oneLimit = promiseLimit(1);
 
 const storeModel = types.model('storeModel', {
   state: types.optional(types.string, 'idle'), // idle, loading, done
@@ -76,6 +78,18 @@ const storeModel = types.model('storeModel', {
     },
     getExtensionsByType(type) {
       return self.getExtensionsWithoutGroup().filter(extension => extension.type === type);
+    },
+    createGroup(group) {
+      self.unshiftGroup(group);
+    },
+    saveGroups() {
+      debug('save');
+      return oneLimit(() => {
+        const list = getSnapshot(self.groups).filter(group => {
+          return !group.computed;
+        });
+        return promisifyApi('chrome.storage.sync.set')({list: list});
+      });
     },
     afterCreate() {
       self.assign({state: 'loading'});
@@ -185,18 +199,20 @@ const storeModel = types.model('storeModel', {
           const prevId = prevNode && prevNode.id;
           const nextId = nextNode && nextNode.id;
 
-          if (fromGroup !== toGroup) {
+          if (toGroup && fromGroup.id !== toGroup.id) {
             fromGroup.removeItem(id);
           }
 
           if (!toGroup) {
-            store.unshiftGroup({
+            store.createGroup({
               name: 'Group',
               ids: [id]
             });
           } else {
             toGroup.moveItem(id, prevId, nextId);
           }
+
+          store.saveGroups();
         },
       });
     }

@@ -11,6 +11,7 @@
     "mobx": "^4.2.0",
     "mobx-react": "^5.0.0",
     "mobx-state-tree": "^2.0.4",
+    "promise-limit": "^2.6.0",
     "react": "^16.3.2",
     "react-dom": "^16.3.2",
     "sortablejs": "^1.7.0",
