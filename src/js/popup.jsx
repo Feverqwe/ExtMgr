@@ -176,6 +176,17 @@ const storeModel = types.model('storeModel', {
       // debug('update');
     } else {
       const self = this;
+
+      // fix sortable bug with checkbox
+      node.getElementsByTagName = ((node, getElementsByTagName) => {
+        return tagName => {
+          if (tagName === 'input') {
+            tagName = 'null-input';
+          }
+          return getElementsByTagName.call(node, tagName);
+        }
+      })(node, node.getElementsByTagName);
+
       this.sortable = new Sortable(node, {
         group: 'extensions',
         handle: '.icon',
