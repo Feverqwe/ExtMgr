@@ -65,6 +65,18 @@ const storeModel = types.model('storeModel', {
     getExtensionsByType(type) {
       return self.getExtensionsWithoutGroup().filter(extension => extension.type === type);
     },
+    getGroups() {
+      const groups = self.groups.slice(0);
+      groups.sort(({computed: aa}, {computed: bb}) => {
+        const a = !!aa;
+        const b = !!bb;
+        if (a === b) {
+          return 0;
+        }
+        return a ? 1 : -1;
+      });
+      return groups;
+    },
     afterCreate() {
       self.assign({state: 'loading'});
 
@@ -106,10 +118,19 @@ const storeModel = types.model('storeModel', {
 @observer class Popup extends React.Component {
   constructor() {
     super();
+
+    this.handleCreateGroup = this.handleCreateGroup.bind(this);
+  }
+  handleCreateGroup(name, ids) {
+    const store = this.props.store;
+    store.addGroup({
+      name,
+      ids
+    });
   }
   render() {
     const store = this.props.store;
-    const groups = store.groups.map((group, index) => {
+    const groups = store.getGroups().map((group, index) => {
       return (
         <Group key={`${index}_${group.name}`} group={group}/>
       );
@@ -237,11 +258,15 @@ const storeModel = types.model('storeModel', {
         },
         onAdd(e) {
           debug('onAdd', e);
+
+          e.from.appendChild(e.item);
         },
         onRemove(e) {
           debug('onRemove', e);
           const itemNode = e.item;
           const id = itemNode.id;
+
+          e.from.appendChild(e.item);
 
           group.removeItem(id);
         },
