@@ -1,4 +1,3 @@
-import 'bootstrap/dist/css/bootstrap.css'
 import '../css/popup.less';
 import {types, resolveIdentifier, destroy, getSnapshot} from 'mobx-state-tree';
 import {observer} from 'mobx-react';
