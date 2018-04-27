@@ -13,7 +13,8 @@
     "mobx-state-tree": "^2.0.4",
     "react": "^16.3.2",
     "react-dom": "^16.3.2",
-    "sortablejs": "^1.7.0"
+    "sortablejs": "^1.7.0",
+    "uuid": "^3.2.1"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",

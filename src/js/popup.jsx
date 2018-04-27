@@ -19,8 +19,11 @@ const storeModel = types.model('storeModel', {
   extensions: types.optional(types.array(extensionModel), [])
 }).actions(self => {
   return {
-    addGroup(group) {
-      self.groups.push(group);
+    addGroup(...group) {
+      self.groups.push(...group);
+    },
+    unshiftGroup(...group) {
+      self.groups.unshift(...group);
     },
     addExtension(extension) {
       self.extensions.push(extension);
@@ -29,6 +32,12 @@ const storeModel = types.model('storeModel', {
       const extension = self.getExtensionById(id);
       if (extension) {
         destroy(extension);
+      }
+    },
+    removeGroup(id) {
+      const group = self.getGroupById(id);
+      if (group) {
+        destroy(group);
       }
     },
     assign(obj) {
@@ -47,6 +56,9 @@ const storeModel = types.model('storeModel', {
   };
 
   return {
+    getGroupById(id) {
+      return resolveIdentifier(groupModel, self, id);
+    },
     getExtensionById(id) {
       return resolveIdentifier(extensionModel, self, id);
     },
@@ -65,18 +77,6 @@ const storeModel = types.model('storeModel', {
     getExtensionsByType(type) {
       return self.getExtensionsWithoutGroup().filter(extension => extension.type === type);
     },
-    getGroups() {
-      const groups = self.groups.slice(0);
-      groups.sort(({computed: aa}, {computed: bb}) => {
-        const a = !!aa;
-        const b = !!bb;
-        if (a === b) {
-          return 0;
-        }
-        return a ? 1 : -1;
-      });
-      return groups;
-    },
     afterCreate() {
       self.assign({state: 'loading'});
 
@@ -89,9 +89,7 @@ const storeModel = types.model('storeModel', {
 
       return Promise.all([
         promisifyApi('chrome.storage.sync.get')({list: []}).then(storage => {
-          storage.list.forEach(group => {
-            self.addGroup(group);
-          });
+          self.unshiftGroup(...storage.list);
         }),
         promisifyApi('chrome.management.getAll')().then(result => {
           chrome.management.onInstalled.addListener(handleInstalledListener);
@@ -123,11 +121,15 @@ const storeModel = types.model('storeModel', {
 
     this.sortable = null;
   }
-  getGroupNode(prev) {
-    while (prev && !prev.classList.contains('group')) {
-      prev = prev.previousElementSibling;
+  getGroupFromNode(node) {
+    while (node && !node.classList.contains('group')) {
+      node = node.previousElementSibling;
     }
-    return prev;
+    let group = null;
+    if (node) {
+      group = this.props.store.getGroupById(node.id);
+    }
+    return group;
   }
   refGroups(node) {
     if (!node) {
@@ -153,15 +155,21 @@ const storeModel = types.model('storeModel', {
         }
       })(node, node.getElementsByTagName);
 
+      let startGroup = null;
+
       this.sortable = new Sortable(node, {
         group: 'extensions',
         handle: '.icon',
         draggable: '.item',
-        onUpdate(e) {
-          debug('onUpdate', e);
-
+        onStart(e) {
           const itemNode = e.item;
-          const groupNode = self.getGroupNode(itemNode);
+          startGroup = self.getGroupFromNode(itemNode);
+        },
+        onEnd(e) {
+          const itemNode = e.item;
+          const toGroup = self.getGroupFromNode(itemNode);
+          const fromGroup = startGroup;
+          startGroup = null;
 
           let prevNode = itemNode.previousElementSibling;
           if (prevNode && prevNode.classList.contains('group')) {
@@ -177,15 +185,17 @@ const storeModel = types.model('storeModel', {
           const prevId = prevNode && prevNode.id;
           const nextId = nextNode && nextNode.id;
 
-          if (!groupNode) {
-            // new group
-            store.addGroup({
+          if (fromGroup !== toGroup) {
+            fromGroup.removeItem(id);
+          }
+
+          if (!toGroup) {
+            store.unshiftGroup({
               name: 'Group',
               ids: [id]
             });
           } else {
-            const group = self.refs[`group_${groupNode.dataset.index}`].props.group;
-            group.insetItem(id, prevId, nextId);
+            toGroup.moveItem(id, prevId, nextId);
           }
         },
       });
@@ -193,11 +203,10 @@ const storeModel = types.model('storeModel', {
   }
   render() {
     const store = this.props.store;
-    const groups = store.getGroups().map((group, index) => {
-      return (
-        <Group ref={`group_${index}`} key={`group_${index}_${group.name}`} index={index} group={group}/>
-      );
-    });
+
+    const groups = store.groups.map(group => (
+      <Group key={group.id} group={group}/>
+    ));
 
     return (
       <div ref={this.refGroups} className="groups">{groups}</div>
@@ -299,7 +308,7 @@ const storeModel = types.model('storeModel', {
     }
 
     return [
-      <div key={'group'} data-index={this.props.index} className={headerClassList.join(' ')} onClick={this.handleToggle}>
+      <div key={group.id} id={group.id} className={headerClassList.join(' ')} onClick={this.handleToggle}>
         <div className="field switch">
           <input type="checkbox" checked={group.isChecked} onChange={group.handleToggle}/>
         </div>

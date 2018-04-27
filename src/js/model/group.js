@@ -1,11 +1,19 @@
-import {types, resolveIdentifier, getParent} from "mobx-state-tree";
+import {types, resolveIdentifier, getParent, destroy} from "mobx-state-tree";
 import extensionModel from "./extension";
 
+const uuidv4 = require('uuid/v4');
+
 const groupModel = types.model('group', {
+  id: types.identifier(),
   isLoading: types.optional(types.boolean, false),
   computed: types.maybe(types.string),
   name: types.string,
   ids: types.optional(types.array(types.string), [])
+}).preProcessSnapshot(snapshot => {
+  if (!snapshot.id) {
+    snapshot.id = uuidv4();
+  }
+  return snapshot;
 }).actions(self => {
   return {
     assign(obj) {
@@ -52,9 +60,16 @@ const groupModel = types.model('group', {
       const ids = self.ids.slice(0);
 
       const pos = ids.indexOf(id);
-      ids.splice(pos, 1);
+      if (pos !== -1) {
+        ids.splice(pos, 1);
+      }
 
-      self.setIds(ids);
+      if (!ids.length) {
+        const store = getParent(self, 2);
+        store.removeGroup(self.id);
+      } else {
+        self.setIds(ids);
+      }
     },
     insetItem(id, prevId, nextId) {
       if (self.computed) return;
