@@ -16,14 +16,11 @@ const promiseLimit = require('promise-limit');
 const oneLimit = promiseLimit(1);
 
 const storeModel = types.model('storeModel', {
-  state: types.optional(types.string, 'idle'), // idle, loading, done
+  isLoading: types.optional(types.boolean, false),
   groups: types.optional(types.array(groupModel), []),
-  extensions: types.optional(types.map(extensionModel), {})
+  extensions: types.optional(types.map(extensionModel), {}),
 }).actions(self => {
   return {
-    addGroup(...group) {
-      self.groups.push(...group);
-    },
     unshiftGroup(...group) {
       self.groups.unshift(...group);
     },
@@ -84,9 +81,6 @@ const storeModel = types.model('storeModel', {
         return !group.computed;
       });
     },
-    getExtensionIds() {
-      return Array.from(self.extensions.keys());
-    },
     getExtensionsWithoutGroup() {
       const groupExtensionIds = [];
       self.getUserGroups().forEach(group => {
@@ -96,9 +90,6 @@ const storeModel = types.model('storeModel', {
     },
     getExtensionsByType(type) {
       return self.getExtensionsWithoutGroup().filter(extension => extension.type === type);
-    },
-    createGroup(group) {
-      self.unshiftGroup(group);
     },
     saveGroups() {
       return oneLimit(() => {
@@ -112,14 +103,15 @@ const storeModel = types.model('storeModel', {
       });
     },
     afterCreate() {
-      self.assign({state: 'loading'});
+      self.assign({isLoading: true});
 
-      ['extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'].forEach(type => {
-        self.addGroup(groupModel.create({
+      const computedGroups = ['extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'].map(type => {
+        return groupModel.create({
           computed: type,
           name: chrome.i18n.getMessage(toCameCase(type) + 'Type')
-        }));
+        });
       });
+      self.unshiftGroup(...computedGroups);
 
       return Promise.all([
         promisifyApi('chrome.storage.sync.get')({list: []}).then(storage => {
@@ -146,7 +138,7 @@ const storeModel = types.model('storeModel', {
       }).catch(err => {
         debug('Loading error', err);
       }).then(() => {
-        self.assign({state: 'done'});
+        self.assign({isLoading: false});
       });
     }
   };
@@ -229,7 +221,7 @@ const storeModel = types.model('storeModel', {
           }
 
           if (!toGroup) {
-            store.createGroup({
+            store.unshiftGroup({
               name: 'Group',
               ids: [id]
             });
