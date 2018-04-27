@@ -79,15 +79,18 @@ const storeModel = types.model('storeModel', {
     getGroupById(id) {
       return resolveIdentifier(groupModel, self, id);
     },
+    getUserGroups() {
+      return self.groups.filter(group => {
+        return !group.computed;
+      });
+    },
     getExtensionIds() {
       return Array.from(self.extensions.keys());
     },
     getExtensionsWithoutGroup() {
       const groupExtensionIds = [];
-      self.groups.forEach(group => {
-        if (!group.computed) {
-          groupExtensionIds.push(...group.getIds());
-        }
+      self.getUserGroups().forEach(group => {
+        groupExtensionIds.push(...group.getIds());
       });
       return Array.from(self.extensions.values()).filter(extensoin => groupExtensionIds.indexOf(extensoin.id) === -1);
     },
@@ -99,9 +102,7 @@ const storeModel = types.model('storeModel', {
     },
     saveGroups() {
       return oneLimit(() => {
-        const userGroups = self.groups.filter(group => {
-          return !group.computed;
-        });
+        const userGroups = self.getUserGroups();
         const list = JSON.parse(JSON.stringify(userGroups));
         list.forEach(group => {
           group.isLoading = undefined;
