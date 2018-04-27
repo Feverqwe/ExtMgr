@@ -47,15 +47,10 @@ const groupModel = types.model('group', {
         return self.ids.map(id => resolveIdentifier(extensionModel, self, id)).filter(a => a);
       }
     },
-    moveItem(id, prevId, nextId) {
+    insertItem(id, prevId, nextId) {
       if (self.computed) return;
 
       const ids = self.ids.slice(0);
-
-      const pos = ids.indexOf(id);
-      if (pos !== -1) {
-        ids.splice(pos, 1);
-      }
 
       if (prevId) {
         const pos = ids.indexOf(prevId);
@@ -68,6 +63,8 @@ const groupModel = types.model('group', {
         if (pos !== -1) {
           ids.splice(pos, 0, id);
         }
+      } else {
+        ids.push(id);
       }
 
       self.setIds(ids);
@@ -82,12 +79,19 @@ const groupModel = types.model('group', {
         ids.splice(pos, 1);
       }
 
-      if (!ids.length) {
+      self.setIds(ids);
+    },
+    removeIfEmpty() {
+      if (self.computed) return;
+
+      if (!self.getExtensions().length) {
         const store = getParent(self, 2);
         store.removeGroup(self.id);
-      } else {
-        self.setIds(ids);
       }
+    },
+    save() {
+      const store = getParent(self, 2);
+      return store.saveGroups();
     },
     handleToggle(e) {
       e.preventDefault();
@@ -100,10 +104,6 @@ const groupModel = types.model('group', {
       }).then(() => {
         self.assign({isLoading: false});
       });
-    },
-    postProcessSnapshot(snapshot) {
-      snapshot.isLoading = undefined;
-      return snapshot;
     }
   };
 });

@@ -18,7 +18,7 @@ const oneLimit = promiseLimit(1);
 const storeModel = types.model('storeModel', {
   state: types.optional(types.string, 'idle'), // idle, loading, done
   groups: types.optional(types.array(groupModel), []),
-  extensions: types.optional(types.array(extensionModel), [])
+  extensions: types.optional(types.map(extensionModel), {})
 }).actions(self => {
   return {
     addGroup(...group) {
@@ -27,11 +27,11 @@ const storeModel = types.model('storeModel', {
     unshiftGroup(...group) {
       self.groups.unshift(...group);
     },
-    addExtension(extension) {
-      self.extensions.push(extension);
+    setExtension(extension) {
+      self.extensions.set(extension.id, extension);
     },
     removeExtension(id) {
-      const extension = self.getExtensionById(id);
+      const extension = self.extensions.get(id);
       if (extension) {
         destroy(extension);
       }
@@ -42,30 +42,45 @@ const storeModel = types.model('storeModel', {
         destroy(group);
       }
     },
+    syncUserGroups(userGroups) {
+      const groups = self.groups.filter(group => group.computed);
+      groups.unshift(...userGroups);
+      self.groups = groups;
+    },
     assign(obj) {
       Object.assign(self, obj);
     }
   };
 }).views(self => {
   const handleInstalledListener = extension => {
-    const exists = !!self.getExtensionById(extension.id);
-    if (!exists) {
-      self.addExtension(extension);
-    }
+    self.setExtension(extension);
   };
   const handleUninstalledListener = id => {
     self.removeExtension(id);
+  };
+  const handleEnabled = extension => {
+    self.setExtension(extension);
+  };
+  const handleDisabled = extension => {
+    self.setExtension(extension);
+  };
+  const handleStorageChanged = (changes, areaName) => {
+    switch (areaName) {
+      case 'sync': {
+        if (changes.list) {
+          self.syncUserGroups(changes.list.newValue);
+        }
+        break;
+      }
+    }
   };
 
   return {
     getGroupById(id) {
       return resolveIdentifier(groupModel, self, id);
     },
-    getExtensionById(id) {
-      return resolveIdentifier(extensionModel, self, id);
-    },
     getExtensionIds() {
-      return self.extensions.map(extension => extension.id);
+      return Array.from(self.extensions.keys());
     },
     getExtensionsWithoutGroup() {
       const groupExtensionIds = [];
@@ -74,7 +89,7 @@ const storeModel = types.model('storeModel', {
           groupExtensionIds.push(...group.getIds());
         }
       });
-      return self.extensions.filter(extensoin => groupExtensionIds.indexOf(extensoin.id) === -1);
+      return Array.from(self.extensions.values()).filter(extensoin => groupExtensionIds.indexOf(extensoin.id) === -1);
     },
     getExtensionsByType(type) {
       return self.getExtensionsWithoutGroup().filter(extension => extension.type === type);
@@ -83,10 +98,14 @@ const storeModel = types.model('storeModel', {
       self.unshiftGroup(group);
     },
     saveGroups() {
-      debug('save');
       return oneLimit(() => {
-        const list = getSnapshot(self.groups).filter(group => {
+        const userGroups = self.groups.filter(group => {
           return !group.computed;
+        });
+        const list = JSON.parse(JSON.stringify(userGroups));
+        list.forEach(group => {
+          group.isLoading = undefined;
+          group.computed = undefined;
         });
         return promisifyApi('chrome.storage.sync.set')({list: list});
       });
@@ -103,22 +122,27 @@ const storeModel = types.model('storeModel', {
 
       return Promise.all([
         promisifyApi('chrome.storage.sync.get')({list: []}).then(storage => {
+          chrome.storage.onChanged.addListener(handleStorageChanged);
+
           self.unshiftGroup(...storage.list);
         }),
         promisifyApi('chrome.management.getAll')().then(result => {
           chrome.management.onInstalled.addListener(handleInstalledListener);
           chrome.management.onUninstalled.addListener(handleUninstalledListener);
+          chrome.management.onEnabled.addListener(handleEnabled);
+          chrome.management.onDisabled.addListener(handleDisabled);
 
-          result.sort(function (a, b) {
-            return a.name > b.name ? 1 : -1;
-          });
           result.forEach(extension => {
             if (extension.id !== chrome.runtime.id) {
-              self.addExtension(extension);
+              self.setExtension(extension);
             }
           });
         })
-      ]).catch(err => {
+      ]).then(() => {
+        self.groups.forEach(group => {
+          group.removeIfEmpty();
+        });
+      }).catch(err => {
         debug('Loading error', err);
       }).then(() => {
         self.assign({state: 'done'});
@@ -199,7 +223,7 @@ const storeModel = types.model('storeModel', {
           const prevId = prevNode && prevNode.id;
           const nextId = nextNode && nextNode.id;
 
-          if (toGroup && fromGroup.id !== toGroup.id) {
+          if (fromGroup) {
             fromGroup.removeItem(id);
           }
 
@@ -209,7 +233,11 @@ const storeModel = types.model('storeModel', {
               ids: [id]
             });
           } else {
-            toGroup.moveItem(id, prevId, nextId);
+            toGroup.insertItem(id, prevId, nextId);
+          }
+
+          if (fromGroup) {
+            fromGroup.removeIfEmpty();
           }
 
           store.saveGroups();
@@ -251,12 +279,11 @@ const storeModel = types.model('storeModel', {
   handleSave(e) {
     e.preventDefault();
     const group = this.props.group;
-    group.setName({
-      name: this.refs.name.value
-    });
+    group.setName(this.refs.name.value);
     this.setState({
       editing: false
     });
+    group.save();
   }
   handleToggle(e) {
     const group = this.props.group;
@@ -296,12 +323,11 @@ const storeModel = types.model('storeModel', {
   }
   render() {
     const group = this.props.group;
-    const computed = !!group.computed;
     const extensions = group.getExtensions().map(extension => {
       return <Extension key={extension.id} extension={extension}/>
     });
 
-    if (computed && !extensions.length) {
+    if (!extensions.length) {
       return null;
     }
 

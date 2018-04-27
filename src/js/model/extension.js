@@ -1,4 +1,4 @@
-import {types} from "mobx-state-tree";
+import {types, isAlive} from "mobx-state-tree";
 import promisifyApi from "../../tools/promisifyApi";
 
 /**
@@ -183,7 +183,9 @@ const extensionModel = types.model('extension', {
       }).catch(err => {
         console.error('uninstall error', err);
       }).then(() => {
-        self.assign({isLoading: false});
+        if (isAlive(self)) {
+          self.assign({isLoading: false});
+        }
       });
     }
   };
