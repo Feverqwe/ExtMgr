@@ -7,7 +7,7 @@ import toCameCase from "../../tools/toCameCase";
 const debug = require('debug')('popup');
 const promiseLimit = require('promise-limit');
 const oneLimit = promiseLimit(1);
-const extensionTypes = ['extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme', 'unknown'];
+const extensionTypes = ['extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'];
 
 const storeModel = types.model('storeModel', {
   isLoading: types.optional(types.boolean, false),
@@ -104,7 +104,7 @@ const storeModel = types.model('storeModel', {
     afterCreate() {
       self.assign({isLoading: true});
 
-      const computedGroups = extensionTypes.map(type => {
+      const computedGroups = [...extensionTypes, 'unknown'].map(type => {
         return groupModel.create({
           computed: type,
           name: chrome.i18n.getMessage(toCameCase(type) + 'Type') || chrome.i18n.getMessage('unknownType'),
