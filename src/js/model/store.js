@@ -126,7 +126,11 @@ const storeModel = types.model('storeModel', {
 
           result.forEach(extension => {
             if (extension.id !== chrome.runtime.id) {
-              self.setExtension(extension);
+              try {
+                self.setExtension(extension);
+              } catch (err) {
+                debug('setExtension error', extension, err);
+              }
             }
           });
         })
