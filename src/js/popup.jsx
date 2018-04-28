@@ -144,10 +144,12 @@ const Sortable = require('sortablejs');
   }
   handleToggle(e) {
     const group = this.props.group;
-    if (e.target === this.refs.header ||
-      e.target.matches('.name span') ||
-      e.target.matches('.name') ||
-      e.target.matches('.switch')
+    if (e.target === this.refs.group ||
+      e.target.matches && (
+        e.target.matches('.name span') ||
+        e.target.matches('.name') ||
+        e.target.matches('.switch')
+      )
     ) {
       group.handleToggle(e);
     }
@@ -207,7 +209,7 @@ const Sortable = require('sortablejs');
     }
 
     return [
-      <div key={group.id} id={group.id} className={headerClassList.join(' ')} onClick={this.handleToggle}>
+      <div ref={'group'} key={group.id} id={group.id} className={headerClassList.join(' ')} onClick={this.handleToggle}>
         <div className="field switch">
           <input type="checkbox" checked={group.isChecked} onChange={group.handleToggle}/>
         </div>
@@ -228,9 +230,11 @@ const Sortable = require('sortablejs');
   handleToggle(e) {
     const extension = this.props.extension;
     if (e.target === this.refs.extension ||
-      e.target.matches('.name span') ||
-      e.target.matches('.name') ||
-      e.target.matches('.switch')
+      e.target.matches && (
+        e.target.matches('.name span') ||
+        e.target.matches('.name') ||
+        e.target.matches('.switch')
+      )
     ) {
       extension.handleToggle(e);
     }
