@@ -40,5 +40,8 @@
   },
   "themeType": {
     "message": "Themes"
+  },
+  "unknownType": {
+    "message": "Unknown"
   }
 }

@@ -1,4 +1,3 @@
-import '../css/popup.less';
 import {types, resolveIdentifier, destroy} from 'mobx-state-tree';
 import groupModel from "./group";
 import promisifyApi from "../../tools/promisifyApi";
@@ -8,6 +7,7 @@ import toCameCase from "../../tools/toCameCase";
 const debug = require('debug')('popup');
 const promiseLimit = require('promise-limit');
 const oneLimit = promiseLimit(1);
+const extensionTypes = ['extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme', 'unknown'];
 
 const storeModel = types.model('storeModel', {
   isLoading: types.optional(types.boolean, false),
@@ -83,7 +83,12 @@ const storeModel = types.model('storeModel', {
       return Array.from(self.extensions.values()).filter(extensoin => groupExtensionIds.indexOf(extensoin.id) === -1);
     },
     getExtensionsByType(type) {
-      return self.getExtensionsWithoutGroup().filter(extension => extension.type === type);
+      const extensions = self.getExtensionsWithoutGroup();
+      if (type === 'unknown') {
+        return extensions.filter(extension => extensionTypes.indexOf(extension.type) === -1);
+      } else {
+        return extensions.filter(extension => extension.type === type);
+      }
     },
     saveGroups() {
       return oneLimit(() => {
@@ -99,10 +104,10 @@ const storeModel = types.model('storeModel', {
     afterCreate() {
       self.assign({isLoading: true});
 
-      const computedGroups = ['extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'].map(type => {
+      const computedGroups = extensionTypes.map(type => {
         return groupModel.create({
           computed: type,
-          name: chrome.i18n.getMessage(toCameCase(type) + 'Type')
+          name: chrome.i18n.getMessage(toCameCase(type) + 'Type') || chrome.i18n.getMessage('unknownType'),
         });
       });
       self.unshiftGroup(...computedGroups);
