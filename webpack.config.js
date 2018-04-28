@@ -101,7 +101,14 @@ if (!isWatch) {
     if (!Array.isArray(value)) {
       value = [value];
     }
-    value.unshift('babel-polyfill', 'element.prototype.matches');
+    value.unshift(
+      'element.prototype.matches',
+      'core-js/fn/set',
+      'core-js/fn/map',
+      'core-js/fn/object/assign',
+      'core-js/fn/array/from',
+      'core-js/fn/promise'
+    );
 
     config.entry[entryName] = value;
   });
