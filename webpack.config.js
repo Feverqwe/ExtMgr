@@ -13,7 +13,7 @@ const outputPath = path.resolve('./dist/');
 
 const env = {
   targets: {
-    browsers: ['Chrome >= 26']
+    browsers: ['Chrome >= 29']
   }
 };
 
@@ -96,6 +96,15 @@ const config = {
 
 if (!isWatch) {
   config.devtool = 'none';
+  Object.keys(config.entry).forEach(entryName => {
+    let value = config.entry[entryName];
+    if (!Array.isArray(value)) {
+      value = [value];
+    }
+    value.unshift('babel-polyfill', 'element.prototype.matches');
+
+    config.entry[entryName] = value;
+  });
 }
 
 module.exports = config;
