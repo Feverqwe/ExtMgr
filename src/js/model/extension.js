@@ -46,7 +46,7 @@ const extensionModelScheme = [
 
 const extensionModel = types.model('extension', {
   isLoading: types.optional(types.boolean, false),
-  id: types.identifier(types.string),
+  id: types.identifier,
   name: types.string,
   shortName: types.maybe(types.string),
   description: types.string,
@@ -71,7 +71,7 @@ const extensionModel = types.model('extension', {
   hostPermissions: types.array(types.string),
   installType: types.string,
   launchType: types.maybe(types.string),
-  availableLaunchTypes: types.maybe(types.array(types.string)),
+  availableLaunchTypes: types.array(types.string),
 }).preProcessSnapshot(snapshot => {
   extensionModelScheme.forEach(item => {
     item.keys.forEach(key => {

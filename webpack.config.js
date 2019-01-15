@@ -2,34 +2,43 @@ const {DefinePlugin} = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const path = require('path');
 
-
-const isWatch = process.argv.some(function (arg) {
-  return arg === '--watch';
-});
-
-const outputPath = path.resolve('./dist/');
-
-const env = {
-  targets: {
-    browsers: ['Chrome >= 29']
+const getArgvValue = key => {
+  let result = null;
+  const pos = process.argv.indexOf(key);
+  if (pos !== -1) {
+    result = process.argv[pos + 1];
   }
+  return result;
 };
 
-if (isWatch) {
-  env.targets.browsers = ['Chrome >= 65'];
-}
+const mode = getArgvValue('--mode') || 'development';
+
+const BUILD_ENV = {
+  outputPath: path.resolve('./dist/'),
+  mode: mode,
+  devtool: mode === 'development' ? 'source-map' : 'none',
+  babelEnvOptions: {
+    targets: {
+      chrome: mode === 'development' ? '71' : '49',
+    },
+    useBuiltIns: mode === 'development' ? false : 'usage',
+  },
+  FLAG_ENABLE_LOGGER: true,
+};
 
 const config = {
   entry: {
     popup: './src/js/popup',
   },
   output: {
-    path: outputPath,
+    path: BUILD_ENV.outputPath,
     filename: 'js/[name].js'
   },
-  devtool: 'source-map',
+  devtool: BUILD_ENV.devtool,
   module: {
     rules: [
       {
@@ -39,11 +48,11 @@ const config = {
           loader: 'babel-loader',
           options: {
             plugins: [
-              'transform-decorators-legacy'
+              ['@babel/plugin-proposal-decorators', {'legacy': true}],
             ],
             presets: [
-              'react',
-              ['env', env]
+              '@babel/preset-react',
+              ['@babel/preset-env', BUILD_ENV.babelEnvOptions]
             ]
           }
         }
@@ -51,7 +60,7 @@ const config = {
       {
         test: /\.(css|less)$/,
         use: [{
-          loader: "style-loader"
+          loader: MiniCssExtractPlugin.loader
         }, {
           loader: "css-loader"
         }, {
@@ -75,43 +84,44 @@ const config = {
     extensions: ['.js', '.jsx'],
   },
   plugins: [
-    new CleanWebpackPlugin(outputPath),
+    new CleanWebpackPlugin(BUILD_ENV.outputPath),
     new CopyWebpackPlugin([
       {from: './src/manifest.json',},
       {from: './src/_locales', to: './_locales'},
       {from: './src/icons', to: './icons'},
     ]),
+    new MiniCssExtractPlugin({
+      filename: '[name].css',
+      chunkFilename: "chunk-[id].css"
+    }),
     new HtmlWebpackPlugin({
       filename: 'popup.html',
       template: './src/popup.html',
       chunks: ['popup']
     }),
     new DefinePlugin({
-      'process.env': {
-        'DEBUG': JSON.stringify('*')
-      }
+      'BUILD_ENV': Object.entries(BUILD_ENV).reduce((obj, [key, value]) => {
+        obj[key] = JSON.stringify(value);
+        return obj;
+      }, {}),
     }),
   ]
 };
 
-if (!isWatch) {
-  config.devtool = 'none';
-  Object.keys(config.entry).forEach(entryName => {
-    let value = config.entry[entryName];
-    if (!Array.isArray(value)) {
-      value = [value];
-    }
-    value.unshift(
-      'element.prototype.matches',
-      'core-js/fn/set',
-      'core-js/fn/map',
-      'core-js/fn/object/assign',
-      'core-js/fn/array/from',
-      'core-js/fn/promise'
-    );
-
-    config.entry[entryName] = value;
-  });
+if (mode !== 'development') {
+  config.plugins.push(
+    new OptimizeCssAssetsPlugin({
+      assetNameRegExp: /\.css$/g,
+      cssProcessor: require('cssnano'),
+      cssProcessorPluginOptions: {
+        preset: [
+          'default',
+          {discardComments: {removeAll: true}}
+        ],
+      },
+      canPrint: true
+    }),
+  );
 }
 
 module.exports = config;

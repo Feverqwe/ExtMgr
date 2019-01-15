@@ -11,8 +11,8 @@ const extensionTypes = ['extension', 'hosted_app', 'packaged_app', 'legacy_packa
 
 const storeModel = types.model('storeModel', {
   isLoading: types.optional(types.boolean, false),
-  groups: types.optional(types.array(groupModel), []),
-  extensions: types.optional(types.map(extensionModel), {}),
+  groups: types.array(groupModel),
+  extensions: types.map(extensionModel),
 }).actions(self => {
   return {
     unshiftGroup(...group) {

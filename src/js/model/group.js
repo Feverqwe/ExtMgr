@@ -4,11 +4,11 @@ import extensionModel from "./extension";
 const uuidv4 = require('uuid/v4');
 
 const groupModel = types.model('group', {
-  id: types.identifier(),
+  id: types.identifier,
   isLoading: types.optional(types.boolean, false),
   computed: types.maybe(types.string),
   name: types.string,
-  ids: types.optional(types.array(types.string), [])
+  ids: types.array(types.string)
 }).preProcessSnapshot(snapshot => {
   if (!snapshot.id) {
     snapshot.id = uuidv4();
