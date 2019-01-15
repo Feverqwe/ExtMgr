@@ -1,3 +1,4 @@
+require('./builder/defaultBuildEnv');
 const {DefinePlugin} = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
@@ -6,39 +7,20 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const path = require('path');
 
-const getArgvValue = key => {
-  let result = null;
-  const pos = process.argv.indexOf(key);
-  if (pos !== -1) {
-    result = process.argv[pos + 1];
-  }
-  return result;
-};
-
-const mode = getArgvValue('--mode') || 'development';
-
-const BUILD_ENV = {
-  outputPath: path.resolve('./dist/'),
-  mode: mode,
-  devtool: mode === 'development' ? 'source-map' : 'none',
-  babelEnvOptions: {
-    targets: {
-      chrome: mode === 'development' ? '71' : '49',
-    },
-    useBuiltIns: mode === 'development' ? false : 'usage',
-  },
-  FLAG_ENABLE_LOGGER: true,
-};
+const outputPath = BUILD_ENV.outputPath;
+const mode = BUILD_ENV.mode;
+const devtool = BUILD_ENV.devtool;
+const babelEnvOptions = BUILD_ENV.babelEnvOptions;
 
 const config = {
   entry: {
     popup: './src/js/popup',
   },
   output: {
-    path: BUILD_ENV.outputPath,
+    path: path.join(outputPath, 'dist'),
     filename: 'js/[name].js'
   },
-  devtool: BUILD_ENV.devtool,
+  devtool: devtool,
   module: {
     rules: [
       {
@@ -52,7 +34,7 @@ const config = {
             ],
             presets: [
               '@babel/preset-react',
-              ['@babel/preset-env', BUILD_ENV.babelEnvOptions]
+              ['@babel/preset-env', babelEnvOptions]
             ]
           }
         }
@@ -84,7 +66,7 @@ const config = {
     extensions: ['.js', '.jsx'],
   },
   plugins: [
-    new CleanWebpackPlugin(BUILD_ENV.outputPath),
+    new CleanWebpackPlugin(outputPath),
     new CopyWebpackPlugin([
       {from: './src/manifest.json',},
       {from: './src/_locales', to: './_locales'},

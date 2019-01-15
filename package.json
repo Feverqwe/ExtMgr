@@ -2,9 +2,10 @@
   "name": "application-name",
   "version": "0.0.1",
   "scripts": {
+    "compress": "node ./builder/compressDist",
     "watch": "webpack --mode development --watch --config webpack.config.js",
     "build": "webpack --mode development --config webpack.config.js",
-    "buildRelease": "webpack --mode production --config webpack.config.js"
+    "buildRelease": "webpack --mode production --config webpack.config.js && npm run compress"
   },
   "dependencies": {
     "mobx": "^5.8.0",
@@ -21,6 +22,7 @@
     "@babel/plugin-proposal-decorators": "^7.2.3",
     "@babel/preset-env": "^7.2.3",
     "@babel/preset-react": "^7.0.0",
+    "archiver": "^3.0.0",
     "babel-loader": "^8.0.5",
     "clean-css-loader": "^1.1.0",
     "clean-webpack-plugin": "^1.0.0",
