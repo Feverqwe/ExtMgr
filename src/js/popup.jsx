@@ -3,8 +3,9 @@ import {observer} from 'mobx-react';
 import ReactDOM from 'react-dom';
 import React from 'react';
 import storeModel from "./model/store";
+import getLogger from "../tools/getLogger";
 
-const debug = require('debug')('popup');
+const debug = getLogger('popup');
 const emptyIcon = require('../img/empty.svg');
 const Sortable = require('sortablejs');
 

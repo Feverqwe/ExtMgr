@@ -3,8 +3,9 @@ import groupModel from "./group";
 import promisifyApi from "../../tools/promisifyApi";
 import extensionModel from "./extension";
 import toCameCase from "../../tools/toCameCase";
+import getLogger from "../../tools/getLogger";
 
-const debug = require('debug')('popup');
+const debug = getLogger('popup');
 const promiseLimit = require('promise-limit');
 const oneLimit = promiseLimit(1);
 const extensionTypes = ['extension', 'hosted_app', 'packaged_app', 'legacy_packaged_app', 'theme'];

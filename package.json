@@ -7,8 +7,6 @@
     "buildRelease": "webpack --mode production --config webpack.config.js"
   },
   "dependencies": {
-    "debug": "^4.1.1",
-    "element.prototype.matches": "^0.1.1",
     "mobx": "^5.8.0",
     "mobx-react": "^5.4.3",
     "mobx-state-tree": "^3.10.0",
