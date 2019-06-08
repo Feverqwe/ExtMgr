@@ -14,11 +14,12 @@ const babelEnvOptions = BUILD_ENV.babelEnvOptions;
 
 const config = {
   entry: {
-    popup: './src/js/popup',
+    app: './src/App',
   },
   output: {
+    filename: 'js/[name].js',
+    chunkFilename: 'js/[name].chunk.js',
     path: path.join(outputPath, 'dist'),
-    filename: 'js/[name].js'
   },
   devtool: devtool,
   module: {
@@ -31,6 +32,7 @@ const config = {
           options: {
             plugins: [
               ['@babel/plugin-proposal-decorators', {'legacy': true}],
+              '@babel/plugin-proposal-class-properties',
             ],
             presets: [
               '@babel/preset-react',
@@ -46,8 +48,6 @@ const config = {
         }, {
           loader: "css-loader"
         }, {
-          loader: "clean-css-loader"
-        }, {
           loader: "less-loader"
         }]
       },
@@ -59,18 +59,39 @@ const config = {
             limit: 8192
           }
         }]
-      }
+      },
+      {
+        test: /[\\/]src[\\/]templates[\\/]popup\.html$/,
+        use: [{
+          loader: path.resolve('./builder/cacheDependencyLoader.js'),
+          options: {
+            dependencies: [
+              path.resolve('./src/AppPrerender')
+            ]
+          }
+        }, {
+          loader: 'prerender-loader',
+          options: {
+            string: true
+          }
+        }]
+      },
     ]
   },
   resolve: {
     extensions: ['.js', '.jsx'],
   },
   plugins: [
-    new CleanWebpackPlugin(outputPath),
+    new CleanWebpackPlugin({
+      cleanStaleWebpackAssets: false,
+      cleanOnceBeforeBuildPatterns: [
+        outputPath,
+      ]
+    }),
     new CopyWebpackPlugin([
       {from: './src/manifest.json',},
       {from: './src/_locales', to: './_locales'},
-      {from: './src/icons', to: './icons'},
+      {from: './src/assets/icons', to: './assets/icons'},
     ]),
     new MiniCssExtractPlugin({
       filename: '[name].css',
@@ -78,8 +99,16 @@ const config = {
     }),
     new HtmlWebpackPlugin({
       filename: 'popup.html',
-      template: './src/popup.html',
-      chunks: ['popup']
+      template: './src/templates/popup.html',
+      chunks: ['app'],
+      minify: {
+        collapseWhitespace: true,
+        removeComments: true,
+        removeRedundantAttributes: true,
+        removeScriptTypeAttributes: true,
+        removeStyleLinkTypeAttributes: true,
+        useShortDoctype: true,
+      }
     }),
     new DefinePlugin({
       'BUILD_ENV': Object.entries(BUILD_ENV).reduce((obj, [key, value]) => {

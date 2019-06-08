@@ -9,7 +9,7 @@ global.BUILD_ENV = {
   distName: `extMgr-${version}`,
   outputPath: path.join(__dirname, '../dist/'),
   mode: mode,
-  devtool: mode === 'development' ? 'source-map' : 'none',
+  devtool: mode === 'development' ? 'inline-source-map' : 'none',
   babelEnvOptions: {
     targets: {
       chrome: mode === 'development' ? '71' : '49',
