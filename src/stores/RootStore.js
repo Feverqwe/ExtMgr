@@ -41,22 +41,25 @@ const RootStore = types.model('RootStore', {
       self.state = 'pending';
       try {
         const [userGroups, extensions] = yield Promise.all([
-          storageGet({list: []}, 'sync').then(storage => storage.list),
+          storageGet({list: []}, 'sync').then(({list: groups}) => {
+            groups.forEach((group) => {
+              if (!group.id) {
+                group.id = uuidv4();
+              }
+            });
+            return groups;
+          }),
           chromeManagementGetAll()
         ]);
 
         if (isAlive(self)) {
           extensions.forEach((extension) => {
             if (extension.id !== chrome.runtime.id) {
-              try {
-                self.setExtension(extension);
-              } catch (err) {
-                logger.error('setExtension error', extension, err);
-              }
+              self.setExtension(extension);
             }
           });
 
-          self.groups = prepGroups(userGroups);
+          self.groups = userGroups;
           self.computedGroups = [...extensionTypes, 'unknown'].map((type) => {
             return {
               id: `computed:${type}`,
@@ -75,11 +78,12 @@ const RootStore = types.model('RootStore', {
       }
     }),
     syncUserGroups(userGroups) {
-      self.groups = prepGroups(userGroups);
+      self.groups = userGroups;
     },
     createGroup(group) {
-      prepGroups([group]);
-      self.groups.unshift(group);
+      self.groups.unshift(Object.assign({}, group, {
+        id: uuidv4()
+      }));
     },
     removeGroupById(id) {
       const group = self.getGroupById(id);
@@ -95,7 +99,11 @@ const RootStore = types.model('RootStore', {
       }
     },
     setExtension(extension) {
-      self.extensions.set(extension.id, prepExtension(extension));
+      try {
+        self.extensions.set(extension.id, extension);
+      } catch (err) {
+        logger.error('set extension error', extension, err);
+      }
     },
     removeExtensionById(id) {
       self.extensions.delete(id);
@@ -169,42 +177,6 @@ const chromeManagementGetAll = () => {
       err ? reject(err) : resolve(result);
     });
   });
-};
-
-const prepGroups = (groups) => {
-  groups.forEach((group) => {
-    if (!group.id) {
-      group.id = uuidv4();
-    }
-  });
-  return groups;
-};
-
-const extensionScheme = [
-  {keys: ['id', 'name', 'description', 'version', 'type', 'optionsUrl', 'installType'], type: 'string'},
-  {keys: ['shortName', 'versionName', 'disabledReason', 'appLaunchUrl', 'homepageUrl', 'updateUrl', 'launchType'], type: 'string', optional: true},
-  {keys: ['mayDisable', 'enabled', 'offlineEnabled'], type: 'boolean'},
-  {keys: ['mayEnable', 'isApp'], type: 'boolean', optional: true},
-  {keys: ['icons', 'permissions', 'hostPermissions'], type: 'array'},
-  {keys: ['availableLaunchTypes'], type: 'array', optional: true},
-];
-const prepExtension = (extension) => {
-  extensionScheme.forEach(item => {
-    item.keys.forEach(key => {
-      if (!item.optional || (extension[key] !== undefined && extension[key] !== null)) {
-        if (item.type === 'string' && typeof extension[key] !== 'string') {
-          extension[key] = '';
-        }
-        if (item.type === 'boolean' && typeof extension[key] !== 'boolean') {
-          extension[key] = !!extension[key];
-        }
-        if (item.type === 'array' && !Array.isArray(extension[key])) {
-          extension[key] = [];
-        }
-      }
-    });
-  });
-  return extension;
 };
 
 export default RootStore;
