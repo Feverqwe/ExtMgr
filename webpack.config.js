@@ -17,8 +17,8 @@ const config = {
     app: './src/App',
   },
   output: {
-    filename: 'js/[name].js',
-    chunkFilename: 'js/[name].chunk.js',
+    filename: '[name].js',
+    chunkFilename: '[name].chunk.js',
     path: path.join(outputPath, 'dist'),
   },
   devtool: devtool,
