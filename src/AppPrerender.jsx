@@ -1,3 +1,4 @@
+import './assets/css/popup.less';
 import RootStore from "./stores/RootStore";
 import ReactDOMServer from 'react-dom/server';
 import React from 'react';

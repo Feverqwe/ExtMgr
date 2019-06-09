@@ -36,10 +36,9 @@ class Group extends React.PureComponent {
     });
   };
 
-  body = React.createRef();
   handleToggle = (e) => {
     e.preventDefault();
-    if (e.target === this.body.current ||
+    if (e.target === e.currentTarget ||
       e.target.matches && (
         e.target.matches('.name span') ||
         e.target.matches('.name') ||
@@ -106,7 +105,7 @@ class Group extends React.PureComponent {
 
     return (
       <>
-        <div ref={this.body} key={groupStore.id} id={groupStore.id} className={headerClassList.join(' ')} onClick={this.handleToggle}>
+        <div key={groupStore.id} id={groupStore.id} className={headerClassList.join(' ')} onClick={this.handleToggle}>
           <div className="field switch">
             <input type="checkbox" checked={groupStore.isChecked} onChange={this.handleChange}/>
           </div>
