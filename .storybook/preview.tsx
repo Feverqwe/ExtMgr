@@ -1,5 +1,4 @@
 import type {Preview} from '@storybook/react-vite';
-import React from 'react';
 import '../src/assets/css/popup.less';
 
 const messages: Record<string, string> = {

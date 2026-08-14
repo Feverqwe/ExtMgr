@@ -1,4 +1,4 @@
-import type {RootStoreInstance} from './stores/RootStore';
+import type RootStore from './stores/RootStore';
 
 declare global {
   const BUILD_ENV:
@@ -9,7 +9,7 @@ declare global {
     | undefined;
 
   interface Window {
-    rootStore: RootStoreInstance;
+    rootStore: RootStore;
   }
 }
 

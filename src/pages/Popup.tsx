@@ -1,74 +1,61 @@
-import {inject, observer} from 'mobx-react';
-import React from 'react';
+import {useEffect, useRef} from 'react';
 import Sortable from 'sortablejs';
 import Group from '../components/Group';
-import type {ComputedGroupStoreInstance} from '../stores/ComputedGroupStore';
-import type {GroupStoreInstance} from '../stores/GroupStore';
-import type {RootStoreInstance} from '../stores/RootStore';
+import type ComputedGroupStore from '../stores/ComputedGroupStore';
+import type GroupStore from '../stores/GroupStore';
+import type RootStore from '../stores/RootStore';
+import useStoreVersion from '../stores/useStoreVersion';
 
 interface PopupProps {
-  rootStore?: RootStoreInstance;
+  rootStore: RootStore;
 }
 
-export class PopupView extends React.PureComponent<PopupProps> {
-  sortable: Sortable | null = null;
+type AnyGroupStore = GroupStore | ComputedGroupStore;
 
-  componentDidMount() {
-    this.rootStore.init();
+const getGroupFromNode = (
+  rootStore: RootStore,
+  node: Element | null,
+): AnyGroupStore | undefined => {
+  let currentNode = node;
+  while (currentNode && !currentNode.classList.contains('group')) {
+    currentNode = currentNode.previousElementSibling;
   }
+  return currentNode ? rootStore.getGroupById(currentNode.id) : undefined;
+};
 
-  get rootStore() {
-    if (!this.props.rootStore) {
-      throw new Error('Popup requires RootStore from MobX Provider');
-    }
-    return this.props.rootStore;
-  }
+const Popup = ({rootStore}: PopupProps) => {
+  useStoreVersion(rootStore);
+  const groupsNode = useRef<HTMLDivElement>(null);
 
-  getGroupFromNode(
-    node: Element | null,
-  ): GroupStoreInstance | ComputedGroupStoreInstance | undefined {
-    let currentNode = node;
-    while (currentNode && !currentNode.classList.contains('group')) {
-      currentNode = currentNode.previousElementSibling;
-    }
-    return currentNode ? this.rootStore.getGroupById(currentNode.id) : undefined;
-  }
+  useEffect(() => {
+    rootStore.init();
+    return () => rootStore.destroy();
+  }, [rootStore]);
 
-  refGroups = (node: HTMLDivElement | null) => {
+  useEffect(() => {
+    const node = groupsNode.current;
     if (!node) {
-      if (this.sortable) {
-        this.sortable.destroy();
-        this.sortable = null;
-      }
       return;
     }
 
-    if (this.sortable) {
-      return;
-    }
-
-    const {rootStore} = this;
-
+    const originalGetElementsByTagName = node.getElementsByTagName;
     // Work around SortableJS treating checkboxes as native drag inputs.
-    node.getElementsByTagName = ((getElementsByTagName) => {
-      return ((tagName: string) => {
-        const sortableTagName = tagName === 'input' ? 'null-input' : tagName;
-        return getElementsByTagName.call(node, sortableTagName);
-      }) as typeof node.getElementsByTagName;
-    })(node.getElementsByTagName);
+    node.getElementsByTagName = ((tagName: string) => {
+      const sortableTagName = tagName === 'input' ? 'null-input' : tagName;
+      return originalGetElementsByTagName.call(node, sortableTagName);
+    }) as typeof node.getElementsByTagName;
 
-    let startGroup: GroupStoreInstance | ComputedGroupStoreInstance | undefined;
-
-    this.sortable = new Sortable(node, {
+    let startGroup: AnyGroupStore | undefined;
+    const sortable = new Sortable(node, {
       group: 'extensions',
       handle: '.icon',
       draggable: '.item',
       onStart: (event) => {
-        startGroup = this.getGroupFromNode(event.item);
+        startGroup = getGroupFromNode(rootStore, event.item);
       },
       onEnd: (event) => {
         const itemNode = event.item;
-        const toGroup = this.getGroupFromNode(itemNode);
+        const toGroup = getGroupFromNode(rootStore, itemNode);
         const fromGroup = startGroup;
         startGroup = undefined;
 
@@ -98,23 +85,23 @@ export class PopupView extends React.PureComponent<PopupProps> {
         rootStore.saveGroups();
       },
     });
-  };
 
-  render() {
-    const groups = this.rootStore.groups.map((group) => (
-      <Group key={group.id} groupStore={group} />
-    ));
-    const computedGroups = this.rootStore.computedGroups.map((group) => (
-      <Group key={group.id} groupStore={group} />
-    ));
+    return () => {
+      sortable.destroy();
+      node.getElementsByTagName = originalGetElementsByTagName;
+    };
+  }, [rootStore]);
 
-    return (
-      <div ref={this.refGroups} className="groups">
-        {groups}
-        {computedGroups}
-      </div>
-    );
-  }
-}
+  return (
+    <div ref={groupsNode} className="groups">
+      {rootStore.groups.map((group) => (
+        <Group key={group.id} groupStore={group} />
+      ))}
+      {rootStore.computedGroups.map((group) => (
+        <Group key={group.id} groupStore={group} />
+      ))}
+    </div>
+  );
+};
 
-export default inject('rootStore')(observer(PopupView));
+export default Popup;

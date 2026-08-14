@@ -34,7 +34,7 @@ module.exports = (_env, argv) => {
                 target: 'es2018',
                 transform: {
                   react: {
-                    runtime: 'classic',
+                    runtime: 'automatic',
                     development: isDevelopment,
                   },
                 },

@@ -19,8 +19,8 @@ Chrome-расширение для быстрого управления уст�
 
 ## Технологии
 
-- React 16;
-- MobX и MobX-State-Tree;
+- React 19;
+- типизированные локальные сторы с подпиской через `useSyncExternalStore`;
 - TypeScript в strict mode и `@types/chrome`;
 - SortableJS и Less;
 - Rspack со встроенным SWC loader;
@@ -101,7 +101,7 @@ Stories должны быть детерминированными и не об�
 
 - Манифест объявляет версию `1.5.3`, Manifest V2 и минимальный Chrome 49.
 - Архитектура полностью popup-based: background page и service worker отсутствуют. Постоянные данные хранятся в `chrome.storage.sync`.
-- Сборочный toolchain обновлён, но runtime сохраняет React 16, MobX 5, MobX-State-Tree 3, callback-based Chrome API и legacy Chrome Apps типы.
+- Runtime использует React 19, callback-based Chrome API и legacy Chrome Apps типы.
 - `npm audit` всё ещё сообщает об уязвимостях в транзитивных и legacy runtime-зависимостях. Их обновление требует отдельной регрессионной работы.
 - Код использует глобальный объект `chrome`; перенос на другой WebExtensions namespace потребует адаптации.
 
@@ -116,7 +116,7 @@ Stories должны быть детерминированными и не об�
 │   ├── assets/              # Less, иконки расширения и UI
 │   ├── components/          # строки группы/расширения и stories
 │   ├── pages/Popup.tsx      # popup и drag-and-drop
-│   ├── stores/              # модели MobX-State-Tree
+│   ├── stores/              # состояние, модели и React-подписка
 │   ├── templates/           # HTML-шаблон popup
 │   ├── tools/               # typed-обёртки над storage и helpers
 │   ├── App.tsx              # browser entry point
@@ -130,14 +130,14 @@ Stories должны быть детерминированными и не об�
 ### Поток данных
 
 1. Rspack собирает TypeScript, Less и assets, копирует manifest/locales/icons и создаёт `popup.html`.
-2. При открытии popup `App.tsx` создаёт `RootStore` и монтирует React-приложение.
+2. При открытии popup `App.tsx` создаёт `RootStore` и монтирует React 19-приложение через `createRoot()`.
 3. `RootStore.init()` параллельно читает группы из `chrome.storage.sync` и получает установленные элементы через `chrome.management.getAll()`.
 4. Пользовательские группы выводятся первыми, остальные элементы распределяются по вычисляемым группам согласно `type`.
 5. События `chrome.management` обновляют список, а изменения sync storage синхронизируют пользовательские группы.
 
 ### Модели состояния
 
-- `RootStore` хранит карту расширений, группы, Chrome listeners и persistence.
+- `RootStore` хранит карту расширений, группы, Chrome listeners и persistence, а UI подписывается на изменения через `useSyncExternalStore`.
 - `ExtensionStore` инкапсулирует включение, отключение, удаление, запуск и настройки.
 - `GroupStore` хранит имя и упорядоченный список идентификаторов пользовательской группы.
 - `ComputedGroupStore` динамически выбирает ещё не сгруппированные расширения заданного типа.

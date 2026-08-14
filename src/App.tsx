@@ -1,17 +1,15 @@
 import './assets/css/popup.less';
-import React from 'react';
-import ReactDOM from 'react-dom';
+import {createRoot} from 'react-dom/client';
 import Popup from './pages/Popup';
 import RootStore from './stores/RootStore';
-import {Provider} from 'mobx-react';
 
-const rootStore = RootStore.create();
+const rootStore = new RootStore();
+const rootElement = document.getElementById('root');
+
+if (!rootElement) {
+  throw new Error('Popup root element was not found');
+}
 
 window.rootStore = rootStore;
 
-ReactDOM.render(
-  <Provider rootStore={rootStore}>
-    <Popup />
-  </Provider>,
-  document.getElementById('root'),
-);
+createRoot(rootElement).render(<Popup rootStore={rootStore} />);

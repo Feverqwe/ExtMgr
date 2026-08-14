@@ -17,12 +17,9 @@
     "lint:fix": "npx eslint --fix ./src ./.storybook && npm run prettier:fix"
   },
   "dependencies": {
-    "mobx": "^5.15.7",
-    "mobx-react": "^6.3.1",
-    "mobx-state-tree": "^3.17.3",
     "promise-limit": "^2.7.0",
-    "react": "^16.14.0",
-    "react-dom": "^16.14.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "sortablejs": "^1.15.6",
     "uuid": "^3.4.0"
   },
@@ -34,8 +31,8 @@
     "@rspack/core": "^2.1.8",
     "@storybook/react-vite": "^10.5.7",
     "@types/chrome": "^0.2.6",
-    "@types/react": "^16.14.70",
-    "@types/react-dom": "^16.9.25",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
     "@types/sortablejs": "^1.15.9",
     "@types/uuid": "^3.4.13",
     "archiver": "^3.0.0",

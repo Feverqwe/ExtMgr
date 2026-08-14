@@ -1,10 +1,9 @@
 import type {Meta, StoryObj} from '@storybook/react-vite';
-import React from 'react';
 import Group from './Group';
 import RootStore from '../stores/RootStore';
 
 const createStore = (secondExtensionEnabled: boolean) =>
-  RootStore.create({
+  new RootStore({
     groups: [
       {
         id: 'development',
@@ -16,10 +15,12 @@ const createStore = (secondExtensionEnabled: boolean) =>
       devtools: {
         id: 'devtools',
         name: 'Developer Tools',
+        shortName: 'DevTools',
         description: 'Developer utilities',
         version: '2.4.0',
         mayDisable: true,
         enabled: true,
+        isApp: false,
         type: 'extension',
         offlineEnabled: true,
         optionsUrl: 'chrome-extension://devtools/options.html',
@@ -32,10 +33,12 @@ const createStore = (secondExtensionEnabled: boolean) =>
       formatter: {
         id: 'formatter',
         name: 'Page Formatter',
+        shortName: 'Formatter',
         description: 'Formats the current page',
         version: '1.8.2',
         mayDisable: true,
         enabled: secondExtensionEnabled,
+        isApp: false,
         type: 'extension',
         offlineEnabled: true,
         optionsUrl: '',

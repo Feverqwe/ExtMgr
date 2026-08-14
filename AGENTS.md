@@ -2,7 +2,7 @@
 
 ## Project overview
 
-This repository contains **Extensions switcher (extMgr)**, a Manifest V2 Chrome extension popup for managing installed extensions and legacy Chrome Apps. Source code is strict TypeScript/React 16 with MobX-State-Tree; Rspack builds the extension and Storybook provides isolated UI states.
+This repository contains **Extensions switcher (extMgr)**, a Manifest V2 Chrome extension popup for managing installed extensions and legacy Chrome Apps. Source code is strict TypeScript/React 19 with local typed stores; Rspack builds the extension and Storybook provides isolated UI states.
 
 Read `README.md` before broad changes. Preserve runtime behavior unless the task explicitly requests a migration or redesign.
 
@@ -40,15 +40,15 @@ npm run build-storybook
 
 ## Change rules
 
-- Keep strict TypeScript green; avoid `any`, `@ts-ignore`, and broad casts. Narrow boundary casts are acceptable for old MobX-State-Tree or Chrome API definitions when explained by the surrounding type.
-- Keep changes focused; do not migrate Manifest V2, React, or MobX incidentally.
+- Keep strict TypeScript green; avoid `any`, `@ts-ignore`, and broad casts. Narrow boundary casts are acceptable for Chrome API definitions when explained by the surrounding type.
+- Keep changes focused; do not migrate Manifest V2 or the state architecture incidentally.
 - Treat `@types/chrome` as compile-time coverage, not proof that an API exists in Manifest V2 or in the minimum browser declared by the manifest. Check runtime availability before adopting a newer API.
-- React 16 uses the classic JSX runtime in both TypeScript and Rspack. Keep the `React` import in TSX modules unless the runtime is deliberately upgraded.
+- The project uses the automatic JSX runtime in both TypeScript and Rspack. Import React APIs and types explicitly when a module uses them.
 - Preserve `chrome.runtime.lastError` checks inside callback-based Chrome API wrappers.
 - Exclude this extension's own `chrome.runtime.id` from the managed extension map.
 - Preserve ordering and temporarily unknown IDs in stored group `ids`.
 - Save groups through `RootStore.saveGroups()` so writes remain serialized by `promise-limit(1)`.
-- Serialize snapshots/plain data, never live MobX-State-Tree nodes, into Chrome storage.
+- Serialize snapshots/plain data, never live store instances, into Chrome storage.
 - Keep user groups persisted and computed groups derived/non-persisted.
 - Update English and Russian locale files together for user-facing copy.
 - Keep Storybook deterministic. Mock Chrome APIs; never depend on an installed extension or a signed-in browser session.

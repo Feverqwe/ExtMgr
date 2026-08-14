@@ -18,10 +18,10 @@ Storybook is the deterministic UI harness for this extension. It runs as an ordi
 ## Story conventions
 
 - Store component stories beside the component as `*.stories.tsx`.
-- Construct a fresh MobX-State-Tree root/model inside each story render to avoid shared mutable state.
+- Construct a fresh root store inside each story render to avoid shared mutable state.
 - Represent enabled, disabled, loading, empty, mixed, and unsupported-action states when relevant.
 - Use the real popup Less stylesheet and `.groups` container so dimensions and nested selectors match production.
-- React 16 requires classic JSX and explicit `React` imports.
+- Storybook uses the automatic JSX transform; import only the React APIs and types a story uses.
 
 ## Verification
 

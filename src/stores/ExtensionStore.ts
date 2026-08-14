@@ -1,141 +1,145 @@
-import {flow, Instance, isAlive, types} from 'mobx-state-tree';
+import type RootStore from './RootStore';
 import getLogger from '../tools/getLogger';
 
 const logger = getLogger('ExtensionStore');
 
-const selectIcon = (icons: Array<{size: number; url: string}>, size: number) => {
+const selectIcon = (icons: readonly chrome.management.IconInfo[], size: number) => {
   const sortedIcons = icons.slice().sort((a, b) => (a.size > b.size ? -1 : 1));
   return sortedIcons.filter((item) => item.size >= size).pop()?.url ?? sortedIcons[0]?.url;
 };
 
-const ExtensionStore = types
-  .model('ExtensionStore', {
-    isLoading: types.optional(types.boolean, false),
-    id: types.identifier,
-    name: types.string,
-    shortName: types.maybe(types.string),
-    description: types.string,
-    version: types.string,
-    versionName: types.maybe(types.string),
-    mayDisable: types.boolean,
-    mayEnable: types.maybe(types.boolean),
-    enabled: types.boolean,
-    disabledReason: types.maybe(types.string),
-    isApp: types.maybe(types.boolean),
-    type: types.string,
-    appLaunchUrl: types.maybe(types.string),
-    homepageUrl: types.maybe(types.string),
-    updateUrl: types.maybe(types.string),
-    offlineEnabled: types.boolean,
-    optionsUrl: types.string,
-    icons: types.array(
-      types.model({
-        size: types.number,
-        url: types.string,
-      }),
-    ),
-    permissions: types.array(types.string),
-    hostPermissions: types.array(types.string),
-    installType: types.string,
-    launchType: types.maybe(types.string),
-    availableLaunchTypes: types.array(types.string),
-  })
-  .actions((self) => {
-    return {
-      uninstall: flow(function* (): Generator<Promise<void>, void, void> {
-        self.isLoading = true;
-        try {
-          yield chromeManagementUninstall(self.id, {
-            showConfirmDialog: true,
-          });
-        } catch (err) {
-          logger.error('uninstall error', err);
-        }
-        if (isAlive(self)) {
-          self.isLoading = false;
-        }
-      }),
-      setEnabled: flow(function* (enabled: boolean): Generator<Promise<void>, void, void> {
-        self.isLoading = true;
-        try {
-          yield chromeManagementSetEnabled(self.id, enabled);
-        } catch (err) {
-          logger.error('setEnabled error', err);
-        }
-        if (isAlive(self)) {
-          self.isLoading = false;
-        }
-      }),
-    };
-  })
-  .views((self) => {
-    return {
-      get icon19() {
-        return selectIcon(self.icons.slice(), 19);
-      },
-      getIcon(size: number) {
-        return selectIcon(self.icons.slice(), size);
-      },
-      get descriptionTitle() {
-        const result = [];
-        result.push(`Name: ${self.name}`);
-        result.push(`ID: ${self.id}`);
+class ExtensionStore {
+  isLoading = false;
 
-        if (self.versionName) {
-          result.push(`Version: ${self.versionName} (${self.version})`);
-        } else {
-          result.push(`Version: ${self.version}`);
-        }
+  constructor(
+    private readonly rootStore: RootStore,
+    private readonly data: chrome.management.ExtensionInfo,
+  ) {}
 
-        result.push(`Type: ${self.type}`);
+  get id() {
+    return this.data.id;
+  }
 
-        if (self.homepageUrl) {
-          result.push(`Homepage: ${self.homepageUrl}`);
-        }
-        if (self.updateUrl) {
-          result.push(`Update url: ${self.updateUrl}`);
-        }
+  get name() {
+    return this.data.name;
+  }
 
-        result.push(`Offline enabled: ${self.offlineEnabled}`);
+  get enabled() {
+    return this.data.enabled;
+  }
 
-        if (self.appLaunchUrl) {
-          result.push(`App launch url: ${self.appLaunchUrl}`);
-        }
+  get mayDisable() {
+    return this.data.mayDisable;
+  }
 
-        result.push(`Permissions: ${self.permissions.join(', ')}`);
-        result.push(`Host permissions: ${self.hostPermissions.join(', ')}`);
-        result.push(`Install type: ${self.installType}`);
+  get type() {
+    return this.data.type;
+  }
 
-        if (self.launchType) {
-          result.push(`Launch type: ${self.launchType}`);
-        }
+  get optionsUrl() {
+    return this.data.optionsUrl;
+  }
 
-        if (!self.enabled && self.disabledReason) {
-          result.push(`Disabled reason: ${self.disabledReason}`);
-        }
+  get launchType() {
+    return this.data.launchType;
+  }
 
-        result.push(`Short name: ${self.shortName}`);
-        result.push(`Description: ${self.description}`);
+  get icon19() {
+    return selectIcon(this.data.icons ?? [], 19);
+  }
 
-        return result.join('\n');
-      },
-      launch() {
-        chrome.management.launchApp(self.id);
-      },
-      openOptions() {
-        chrome.tabs.create({
-          url: self.optionsUrl,
-        });
-      },
-    };
-  });
+  getIcon(size: number) {
+    return selectIcon(this.data.icons ?? [], size);
+  }
+
+  get descriptionTitle() {
+    const result = [`Name: ${this.name}`, `ID: ${this.id}`];
+
+    if (this.data.versionName) {
+      result.push(`Version: ${this.data.versionName} (${this.data.version})`);
+    } else {
+      result.push(`Version: ${this.data.version}`);
+    }
+
+    result.push(`Type: ${this.type}`);
+
+    if (this.data.homepageUrl) {
+      result.push(`Homepage: ${this.data.homepageUrl}`);
+    }
+    if (this.data.updateUrl) {
+      result.push(`Update url: ${this.data.updateUrl}`);
+    }
+
+    result.push(`Offline enabled: ${this.data.offlineEnabled}`);
+
+    if (this.data.appLaunchUrl) {
+      result.push(`App launch url: ${this.data.appLaunchUrl}`);
+    }
+
+    result.push(`Permissions: ${this.data.permissions?.join(', ') ?? ''}`);
+    result.push(`Host permissions: ${this.data.hostPermissions?.join(', ') ?? ''}`);
+    result.push(`Install type: ${this.data.installType}`);
+
+    if (this.data.launchType) {
+      result.push(`Launch type: ${this.data.launchType}`);
+    }
+
+    if (!this.enabled && this.data.disabledReason) {
+      result.push(`Disabled reason: ${this.data.disabledReason}`);
+    }
+
+    result.push(`Short name: ${this.data.shortName}`);
+    result.push(`Description: ${this.data.description}`);
+
+    return result.join('\n');
+  }
+
+  subscribe = (listener: () => void) => this.rootStore.subscribe(listener);
+
+  getVersion = () => this.rootStore.getVersion();
+
+  async uninstall() {
+    this.setLoading(true);
+    try {
+      await chromeManagementUninstall(this.id, {
+        showConfirmDialog: true,
+      });
+    } catch (error) {
+      logger.error('uninstall error', error);
+    }
+    this.setLoading(false);
+  }
+
+  async setEnabled(enabled: boolean) {
+    this.setLoading(true);
+    try {
+      await chromeManagementSetEnabled(this.id, enabled);
+    } catch (error) {
+      logger.error('setEnabled error', error);
+    }
+    this.setLoading(false);
+  }
+
+  launch() {
+    chrome.management.launchApp(this.id);
+  }
+
+  openOptions() {
+    chrome.tabs.create({url: this.optionsUrl});
+  }
+
+  private setLoading(isLoading: boolean) {
+    this.isLoading = isLoading;
+    this.rootStore.notify();
+  }
+}
 
 const chromeManagementSetEnabled = (id: string, enabled: boolean) => {
   return new Promise<void>((resolve, reject) => {
     chrome.management.setEnabled(id, enabled, () => {
-      const err = chrome.runtime.lastError;
-      if (err) {
-        reject(err);
+      const error = chrome.runtime.lastError;
+      if (error) {
+        reject(error);
       } else {
         resolve();
       }
@@ -146,16 +150,14 @@ const chromeManagementSetEnabled = (id: string, enabled: boolean) => {
 const chromeManagementUninstall = (id: string, options: chrome.management.UninstallOptions) => {
   return new Promise<void>((resolve, reject) => {
     chrome.management.uninstall(id, options, () => {
-      const err = chrome.runtime.lastError;
-      if (err) {
-        reject(err);
+      const error = chrome.runtime.lastError;
+      if (error) {
+        reject(error);
       } else {
         resolve();
       }
     });
   });
 };
-
-export type ExtensionStoreInstance = Instance<typeof ExtensionStore>;
 
 export default ExtensionStore;

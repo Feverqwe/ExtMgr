@@ -1,7 +1,14 @@
-import {observer} from 'mobx-react';
-import React from 'react';
+import {
+  useRef,
+  useState,
+  type ChangeEvent,
+  type MouseEvent,
+  type ReactNode,
+  type SyntheticEvent,
+} from 'react';
 import Extension from './Extension';
-import type {ExtensionStoreInstance} from '../stores/ExtensionStore';
+import type ExtensionStore from '../stores/ExtensionStore';
+import useStoreVersion from '../stores/useStoreVersion';
 
 interface GroupStoreLike {
   id: string;
@@ -9,7 +16,9 @@ interface GroupStoreLike {
   computed?: string;
   isLoading: boolean;
   isChecked: boolean;
-  extensions: readonly ExtensionStoreInstance[];
+  extensions: readonly ExtensionStore[];
+  subscribe(listener: () => void): () => void;
+  getVersion(): number;
   setEnabled(enabled: boolean): Promise<void>;
   setName(name: string): void;
   save(): Promise<void> | void;
@@ -19,38 +28,28 @@ interface GroupProps {
   groupStore: GroupStoreLike;
 }
 
-interface GroupState {
-  editing: boolean;
-}
+const Group = ({groupStore}: GroupProps) => {
+  useStoreVersion(groupStore);
+  const [editing, setEditing] = useState(false);
+  const form = useRef<HTMLFormElement>(null);
 
-class Group extends React.PureComponent<GroupProps, GroupState> {
-  state: GroupState = {
-    editing: false,
+  const handleEdit = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    setEditing(true);
   };
 
-  form = React.createRef<HTMLFormElement>();
-
-  get groupStore() {
-    return this.props.groupStore;
-  }
-
-  handleEdit = (event: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleSave = (event: SyntheticEvent) => {
     event.preventDefault();
-    this.setState({editing: true});
-  };
-
-  handleSave = (event: React.SyntheticEvent) => {
-    event.preventDefault();
-    const name = this.form.current?.elements.namedItem('name') as HTMLInputElement | null;
+    const name = form.current?.elements.namedItem('name') as HTMLInputElement | null;
 
     if (name) {
-      this.groupStore.setName(name.value);
-      this.groupStore.save();
+      groupStore.setName(name.value);
+      groupStore.save();
     }
-    this.setState({editing: false});
+    setEditing(false);
   };
 
-  handleToggle = (event: React.MouseEvent<HTMLDivElement>) => {
+  const handleToggle = (event: MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
     const target = event.target;
 
@@ -59,80 +58,77 @@ class Group extends React.PureComponent<GroupProps, GroupState> {
       (target instanceof Element &&
         (target.matches('.name span') || target.matches('.name') || target.matches('.switch')))
     ) {
-      this.groupStore.setEnabled(!this.groupStore.isChecked);
+      groupStore.setEnabled(!groupStore.isChecked);
     }
   };
 
-  handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     event.preventDefault();
-    this.groupStore.setEnabled(!this.groupStore.isChecked);
+    groupStore.setEnabled(!groupStore.isChecked);
   };
 
-  render() {
-    const {groupStore} = this;
-    const extensions = groupStore.extensions.map((extension) => (
-      <Extension key={extension.id} extensionStore={extension} />
-    ));
+  const extensions = groupStore.extensions.map((extension) => (
+    <Extension key={extension.id} extensionStore={extension} />
+  ));
 
-    if (!extensions.length) {
-      return null;
-    }
+  if (!extensions.length) {
+    return null;
+  }
 
-    const headerClassNames = ['item group'];
-    if (groupStore.isLoading) {
-      headerClassNames.push('loading');
-    }
+  const headerClassNames = ['item group'];
+  if (groupStore.isLoading) {
+    headerClassNames.push('loading');
+  }
 
-    let name: React.ReactNode;
-    if (this.state.editing) {
-      headerClassNames.push('edit');
-      name = (
-        <form ref={this.form} onSubmit={this.handleSave}>
-          <input name="name" defaultValue={groupStore.name} type="text" />
-        </form>
+  let name: ReactNode;
+  if (editing) {
+    headerClassNames.push('edit');
+    name = (
+      <form ref={form} onSubmit={handleSave}>
+        <input name="name" defaultValue={groupStore.name} type="text" />
+      </form>
+    );
+  } else {
+    name = <span>{groupStore.name}</span>;
+  }
+
+  const actions: ReactNode[] = [];
+  if (!groupStore.computed) {
+    if (editing) {
+      actions.push(
+        <a
+          key="save"
+          title={chrome.i18n.getMessage('save')}
+          href="#save"
+          onClick={handleSave}
+          className="btn save"
+        />,
       );
     } else {
-      name = <span>{groupStore.name}</span>;
+      actions.push(
+        <a
+          key="edit"
+          title={chrome.i18n.getMessage('edit')}
+          href="#edit"
+          onClick={handleEdit}
+          className="btn edit"
+        />,
+      );
     }
-
-    const actions: React.ReactNode[] = [];
-    if (!groupStore.computed) {
-      if (this.state.editing) {
-        actions.push(
-          <a
-            key="save"
-            title={chrome.i18n.getMessage('save')}
-            href="#save"
-            onClick={this.handleSave}
-            className="btn save"
-          />,
-        );
-      } else {
-        actions.push(
-          <a
-            key="edit"
-            title={chrome.i18n.getMessage('edit')}
-            href="#edit"
-            onClick={this.handleEdit}
-            className="btn edit"
-          />,
-        );
-      }
-    }
-
-    return (
-      <>
-        <div id={groupStore.id} className={headerClassNames.join(' ')} onClick={this.handleToggle}>
-          <div className="field switch">
-            <input type="checkbox" checked={groupStore.isChecked} onChange={this.handleChange} />
-          </div>
-          <div className="field name">{name}</div>
-          <div className="field action">{actions}</div>
-        </div>
-        {extensions}
-      </>
-    );
   }
-}
 
-export default observer(Group);
+  return (
+    <>
+      <div id={groupStore.id} className={headerClassNames.join(' ')} onClick={handleToggle}>
+        <div className="field switch">
+          <input type="checkbox" checked={groupStore.isChecked} onChange={handleChange} />
+        </div>
+        <div className="field name">{name}</div>
+        <div className="field action">{actions}</div>
+      </div>
+      {extensions}
+    </>
+  );
+};
+
+export default Group;

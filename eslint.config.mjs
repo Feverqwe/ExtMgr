@@ -31,6 +31,8 @@ export default [
       '@typescript-eslint/no-use-before-define': 'off',
       '@typescript-eslint/parameter-properties': 'off',
       'react-hooks/rules-of-hooks': 'warn',
+      'react/jsx-uses-react': 'off',
+      'react/react-in-jsx-scope': 'off',
       'react/sort-comp': 'off',
     },
   },
