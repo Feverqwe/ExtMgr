@@ -1,3 +1,5 @@
+import {useSortable} from '@dnd-kit/sortable';
+import {CSS} from '@dnd-kit/utilities';
 import type React from 'react';
 import type ExtensionStore from '../stores/ExtensionStore';
 import useStoreVersion from '../stores/useStoreVersion';
@@ -5,10 +7,23 @@ import emptyIcon from '../assets/img/empty.svg';
 
 interface ExtensionProps {
   extensionStore: ExtensionStore;
+  groupId: string;
 }
 
-const Extension = ({extensionStore}: ExtensionProps) => {
+const Extension = ({extensionStore, groupId}: ExtensionProps) => {
   useStoreVersion(extensionStore);
+  const {
+    attributes,
+    isDragging,
+    listeners,
+    setActivatorNodeRef,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({
+    id: extensionStore.id,
+    data: {kind: 'extension', groupId},
+  });
 
   const handleToggle = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -47,6 +62,14 @@ const Extension = ({extensionStore}: ExtensionProps) => {
   if (extensionStore.isLoading) {
     classNames.push('loading');
   }
+  if (isDragging) {
+    classNames.push('dragging');
+  }
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   const actions: React.ReactNode[] = [];
   if (extensionStore.enabled) {
@@ -89,8 +112,10 @@ const Extension = ({extensionStore}: ExtensionProps) => {
 
   return (
     <div
+      ref={setNodeRef}
       id={extensionStore.id}
       className={classNames.join(' ')}
+      style={style}
       onClick={handleToggle}
       title={extensionStore.descriptionTitle}
     >
@@ -103,7 +128,13 @@ const Extension = ({extensionStore}: ExtensionProps) => {
           onChange={handleChange}
         />
       </div>
-      <div className="field icon" title={chrome.i18n.getMessage('move')}>
+      <div
+        ref={setActivatorNodeRef}
+        className="field icon"
+        title={chrome.i18n.getMessage('move')}
+        {...attributes}
+        {...listeners}
+      >
         <img src={extensionStore.icon19 || emptyIcon} alt="" />
       </div>
       <div className="field name">

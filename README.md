@@ -22,7 +22,7 @@ Chrome-расширение для быстрого управления уст�
 - React 19;
 - типизированные локальные сторы с подпиской через `useSyncExternalStore`;
 - TypeScript в strict mode и `@types/chrome`;
-- SortableJS и Less;
+- dnd-kit и Less;
 - Rspack со встроенным SWC loader;
 - ESLint и Prettier;
 - Storybook на Vite.

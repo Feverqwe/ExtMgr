@@ -10,7 +10,7 @@ Read `README.md` before broad changes. Preserve runtime behavior unless the task
 
 - `src/manifest.json`: extension version, permissions, popup, icons, and minimum Chrome version.
 - `src/stores/`: state, persistence, and Chrome API operations.
-- `src/pages/Popup.tsx`: top-level rendering and drag-and-drop grouping.
+- `src/pages/Popup.tsx`: top-level rendering and dnd-kit grouping orchestration.
 - `src/components/`: group/extension interactions and stories.
 - `src/_locales/`: user-facing translated strings.
 - `rspack.config.js`: compilation, HTML generation, copied assets, and output layout.

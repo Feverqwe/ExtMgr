@@ -25,7 +25,7 @@ These instructions apply under `src/` and supplement the repository-level `AGENT
 ## UI and Storybook conventions
 
 - Components receive stores through typed props and subscribe without third-party state bindings.
-- Configure drag-and-drop once in `Popup.refGroups` and destroy SortableJS when the node unmounts.
+- Keep dnd-kit orchestration in `Popup`; extension icons are the pointer and keyboard drag activators.
 - Group headers and extension rows share `.item`; only extension icons are drag handles.
 - Action links must prevent their intended action from becoming a row toggle.
 - Keep interface strings in both locale JSON files rather than hard-coding new labels in TSX.

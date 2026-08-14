@@ -20,6 +20,12 @@ input {
   min-height: 164px;
   max-height: 480px;
   overflow-y: auto;
+  &.drag-overlay-groups {
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+    pointer-events: none;
+  }
   &::-webkit-scrollbar {
     width: 8px;
     background-color: #eeeeee;
@@ -40,6 +46,15 @@ input {
     &:hover {
       background-color: #eee;
     }
+    &.dragging {
+      opacity: 0.25;
+    }
+    &.drag-overlay {
+      width: 320px;
+      background-color: #fff;
+      box-shadow: 0 2px 8px fade(#000, 20%);
+      cursor: grabbing;
+    }
     .field {
       &.switch {
         display: flex;
@@ -52,6 +67,7 @@ input {
       &.icon {
         display: flex;
         cursor: move;
+        touch-action: none;
         width: 22px;
         min-width: 22px;
         height: 22px;
@@ -103,6 +119,9 @@ input {
       border-top: 1px dashed #777;
       &:first-child {
         border-top: 0;
+      }
+      &.drop-target {
+        background-color: #eee;
       }
       .field {
         &.name {

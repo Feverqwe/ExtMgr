@@ -17,10 +17,12 @@
     "lint:fix": "npx eslint --fix ./src ./.storybook && npm run prettier:fix"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "promise-limit": "^2.7.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "sortablejs": "^1.15.6",
     "uuid": "^3.4.0"
   },
   "devDependencies": {
@@ -33,7 +35,6 @@
     "@types/chrome": "^0.2.6",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
-    "@types/sortablejs": "^1.15.9",
     "@types/uuid": "^3.4.13",
     "archiver": "^3.0.0",
     "eslint": "^9.39.5",

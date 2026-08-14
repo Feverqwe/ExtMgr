@@ -1,3 +1,4 @@
+import {DndContext} from '@dnd-kit/core';
 import type {Meta, StoryObj} from '@storybook/react-vite';
 import Group from './Group';
 import RootStore from '../stores/RootStore';
@@ -54,6 +55,13 @@ const createStore = (secondExtensionEnabled: boolean) =>
 const meta: Meta<typeof Group> = {
   title: 'Popup/Group',
   component: Group,
+  decorators: [
+    (Story) => (
+      <DndContext>
+        <Story />
+      </DndContext>
+    ),
+  ],
 };
 
 export default meta;

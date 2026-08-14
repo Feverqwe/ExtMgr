@@ -1,3 +1,5 @@
+import {useDroppable} from '@dnd-kit/core';
+import {SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
 import {
   useRef,
   useState,
@@ -30,6 +32,10 @@ interface GroupProps {
 
 const Group = ({groupStore}: GroupProps) => {
   useStoreVersion(groupStore);
+  const {isOver, setNodeRef} = useDroppable({
+    id: `drop:group:${groupStore.id}`,
+    data: {kind: 'group', groupId: groupStore.id},
+  });
   const [editing, setEditing] = useState(false);
   const form = useRef<HTMLFormElement>(null);
 
@@ -68,7 +74,7 @@ const Group = ({groupStore}: GroupProps) => {
   };
 
   const extensions = groupStore.extensions.map((extension) => (
-    <Extension key={extension.id} extensionStore={extension} />
+    <Extension key={extension.id} extensionStore={extension} groupId={groupStore.id} />
   ));
 
   if (!extensions.length) {
@@ -78,6 +84,9 @@ const Group = ({groupStore}: GroupProps) => {
   const headerClassNames = ['item group'];
   if (groupStore.isLoading) {
     headerClassNames.push('loading');
+  }
+  if (isOver) {
+    headerClassNames.push('drop-target');
   }
 
   let name: ReactNode;
@@ -119,14 +128,24 @@ const Group = ({groupStore}: GroupProps) => {
 
   return (
     <>
-      <div id={groupStore.id} className={headerClassNames.join(' ')} onClick={handleToggle}>
+      <div
+        ref={setNodeRef}
+        id={groupStore.id}
+        className={headerClassNames.join(' ')}
+        onClick={handleToggle}
+      >
         <div className="field switch">
           <input type="checkbox" checked={groupStore.isChecked} onChange={handleChange} />
         </div>
         <div className="field name">{name}</div>
         <div className="field action">{actions}</div>
       </div>
-      {extensions}
+      <SortableContext
+        items={groupStore.extensions.map(({id}) => id)}
+        strategy={verticalListSortingStrategy}
+      >
+        {extensions}
+      </SortableContext>
     </>
   );
 };
