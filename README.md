@@ -99,7 +99,7 @@ Stories должны быть детерминированными и не об�
 
 ## Текущее техническое состояние
 
-- Манифест объявляет версию `1.5.3`, Manifest V3 и минимальный Chrome 120.
+- Манифест объявляет версию `1.5.4`, Manifest V3 и минимальный Chrome 120.
 - Архитектура полностью popup-based: background page и service worker отсутствуют. Постоянные данные хранятся в `chrome.storage.sync`.
 - Runtime использует React 19 и Promise-based Chrome API; типы management по-прежнему учитывают legacy Chrome Apps.
 - `npm audit` всё ещё сообщает об уязвимостях в транзитивных и legacy runtime-зависимостях. Их обновление требует отдельной регрессионной работы.

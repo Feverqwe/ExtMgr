@@ -51,6 +51,7 @@ npm run build-storybook
 - Serialize snapshots/plain data, never live store instances, into Chrome storage.
 - Keep user groups persisted and computed groups derived/non-persisted.
 - Update English and Russian locale files together for user-facing copy.
+- Preserve the compact desktop popup sizing contract: interactive targets are at least 32 by 32 CSS pixels and group/extension rows are at least 36 pixels high. Visible glyphs may be smaller than their hit areas.
 - Keep Storybook deterministic. Mock Chrome APIs; never depend on an installed extension or a signed-in browser session.
 - Add or update stories when reusable rendered states change.
 - Do not use `npm audit fix --force` or broad dependency upgrades as incidental cleanup; legacy runtime changes require dedicated compatibility work.
@@ -66,7 +67,7 @@ npm run build-storybook
 
 ## Verification
 
-For source changes, run `npm run tsc`, `npm run lint`, and `npm run build`. For rendered UI changes, also run `npm run build-storybook` and inspect the relevant stories at normal and narrow popup widths.
+For source changes, run `npm run tsc`, `npm run lint`, and `npm run build`. For rendered UI changes, also run `npm run build-storybook` and inspect the relevant stories at the fixed 320-pixel popup width and in a narrower viewport to identify clipping or overflow.
 
 For Chrome behavior, load `dist/dist/` as an unpacked extension in a compatible browser. Verify affected actions; only exercise uninstall when explicitly intended.
 

@@ -9,7 +9,6 @@
 body {
   margin: 0;
   width: 320px;
-  max-width: 100vw;
   min-height: 164px;
   overflow: hidden;
   background: #ffffff;
@@ -32,7 +31,6 @@ button {
 .popup-shell,
 .groups {
   width: 320px;
-  max-width: 100vw;
   min-height: 164px;
   background: #ffffff;
 }
@@ -70,9 +68,9 @@ button {
   position: relative;
   display: flex;
   width: 100%;
-  min-height: 30px;
+  min-height: 36px;
   align-items: center;
-  padding: 2px 3px;
+  padding: 2px 4px;
 
   &:hover {
     background: #f2f2f2;
@@ -100,23 +98,46 @@ button {
 
     &.switch {
       display: flex;
-      width: 25px;
-      min-width: 25px;
+      width: 32px;
+      min-width: 32px;
+      height: 32px;
       align-items: center;
       justify-content: center;
 
       input {
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
         accent-color: #1a73e8;
+        cursor: pointer;
+
+        &:disabled {
+          cursor: default;
+        }
+      }
+
+      &:has(input) {
+        cursor: pointer;
+      }
+
+      &:has(input:disabled) {
+        cursor: default;
+      }
+
+      &:has(input:focus-visible) {
+        outline: 2px solid #1a73e8;
+        outline-offset: -2px;
+      }
+
+      input:focus-visible {
+        outline: 0;
       }
     }
 
     &.icon {
       display: flex;
-      width: 25px;
-      min-width: 25px;
-      height: 25px;
+      width: 32px;
+      min-width: 32px;
+      height: 32px;
       align-items: center;
       justify-content: center;
 
@@ -128,9 +149,9 @@ button {
     }
 
     &.drag-handle {
-      width: 35px;
-      min-width: 35px;
-      gap: 3px;
+      width: 40px;
+      min-width: 40px;
+      gap: 4px;
       cursor: grab;
       touch-action: none;
 
@@ -168,7 +189,7 @@ button {
 
     &.name {
       flex: 1 1 auto;
-      margin: 0 3px;
+      margin: 0 4px;
       overflow: hidden;
     }
 
@@ -183,8 +204,8 @@ button {
     display: block;
     width: 100%;
     min-width: 0;
-    height: 25px;
-    padding: 2px 0;
+    height: 32px;
+    padding: 5px 0;
     overflow: hidden;
     background: transparent;
     cursor: pointer;
@@ -205,15 +226,15 @@ button {
 
   .btn {
     display: block;
-    width: 24px;
-    min-width: 24px;
-    height: 24px;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
     padding: 0;
     background-color: transparent;
     background-position: center;
     background-repeat: no-repeat;
     cursor: pointer;
-    opacity: 0.5;
+    opacity: 0.62;
 
     &:hover,
     &:focus-visible {
@@ -227,32 +248,32 @@ button {
 
     &.remove {
       background-image: url(../img/remove.svg);
-      background-size: 13px;
+      background-size: 16px;
     }
 
     &.options {
       background-image: url(../img/options.svg);
-      background-size: 15px;
+      background-size: 17px;
     }
 
     &.launch {
       background-image: url(../img/rocket.svg);
-      background-size: 15px;
+      background-size: 17px;
     }
 
     &.edit {
       background-image: url(../img/edit.svg);
-      background-size: 15px;
+      background-size: 17px;
     }
 
     &.save {
       background-image: url(../img/save.svg);
-      background-size: 15px;
+      background-size: 17px;
     }
   }
 
   &.group {
-    min-height: 32px;
+    min-height: 36px;
     background: #fafafa;
     font-size: 15px;
     font-weight: 400;
@@ -271,8 +292,8 @@ button {
 
     input[type='text'] {
       width: 100%;
-      height: 25px;
-      padding: 2px 4px;
+      height: 32px;
+      padding: 5px 6px;
       border: 1px solid #1a73e8;
       outline: 0;
       background: #ffffff;
@@ -282,7 +303,7 @@ button {
 
 .new-group-drop {
   display: flex;
-  min-height: 30px;
+  min-height: 36px;
   align-items: center;
   justify-content: center;
   margin: 4px 5px 5px;

@@ -115,7 +115,7 @@ const Extension = ({extensionId, groupId}: ExtensionProps) => {
       style={style}
       aria-busy={extension.isLoading}
     >
-      <div className="field switch">
+      <label className="field switch">
         <input
           type="checkbox"
           title={enabledTitle}
@@ -124,7 +124,7 @@ const Extension = ({extensionId, groupId}: ExtensionProps) => {
           disabled={!extension.mayDisable || extension.isLoading}
           onChange={handleChange}
         />
-      </div>
+      </label>
       <div
         ref={setActivatorNodeRef}
         className="field icon drag-handle"

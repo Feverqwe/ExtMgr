@@ -27,6 +27,9 @@ These instructions apply under `src/` and supplement the repository-level `AGENT
 - Components receive shared popup data through context without third-party state bindings.
 - Keep dnd-kit orchestration in `Popup`; extension icons are the pointer and keyboard drag activators.
 - Group headers and extension rows share `.item`; only extension icons are drag handles.
+- Treat the popup as a fixed 320-pixel desktop surface. Keep group and extension rows at least 36 pixels high, action/name controls at least 32 pixels high, action buttons 32 by 32 pixels, and drag handles at least 40 by 32 pixels.
+- Keep checkbox glyphs at least 16 by 16 pixels inside a 32-by-32 clickable `label`; clicking the surrounding hit area must toggle the checkbox, and keyboard focus must remain visible around the full hit area.
+- Keep conditional action combinations usable within the popup width; extension names may ellipsize, but controls must not shrink below their target sizes.
 - Action links must prevent their intended action from becoming a row toggle.
 - Keep interface strings in both locale JSON files rather than hard-coding new labels in TSX.
 - Put deterministic stories next to their component as `*.stories.tsx`.
@@ -40,5 +43,7 @@ These instructions apply under `src/` and supplement the repository-level `AGENT
 - Reordering and moving items persists after reopening.
 - Moving the last visible item removes an empty user group.
 - Group checkbox state reflects all visible members and toggles them together.
+- Checkbox padding is clickable, and keyboard focus outlines the full 32-by-32 target.
+- Rows remain readable and every supported action stays reachable at the fixed 320-pixel popup width; inspect a narrower Storybook viewport separately for clipping.
 - Enable, options, launch, and uninstall controls appear only when supported by metadata.
 - Check the browser console when validating Storybook or the unpacked popup; successful compilation does not catch missing runtime Chrome mocks.

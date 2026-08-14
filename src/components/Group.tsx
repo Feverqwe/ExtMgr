@@ -159,7 +159,7 @@ const Group = ({groupId}: GroupProps) => {
         className={headerClassNames.join(' ')}
         aria-busy={group.isLoading}
       >
-        <div className="field switch">
+        <label className="field switch">
           <input
             ref={checkbox}
             type="checkbox"
@@ -168,7 +168,7 @@ const Group = ({groupId}: GroupProps) => {
             disabled={group.isLoading}
             onChange={handleChange}
           />
-        </div>
+        </label>
         <div className="field name">{name}</div>
         <div className="field action">{actions}</div>
       </div>
