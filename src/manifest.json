@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "minimum_chrome_version": "49",
   "browser_action": {
-    "default_icon":  {
+    "default_icon": {
       "19": "assets/icons/icon_19.png",
       "38": "assets/icons/icon_38.png"
     },
@@ -14,7 +14,7 @@
     "128": "assets/icons/icon_128.png"
   },
   "offline_enabled": true,
-  "permissions": [ "storage", "management" ],
+  "permissions": ["storage", "management"],
   "name": "Extensions switcher",
   "description": "__MSG_appDesc__",
   "default_locale": "en",
