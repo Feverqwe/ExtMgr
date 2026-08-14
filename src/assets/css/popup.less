@@ -135,14 +135,16 @@ button {
       touch-action: none;
 
       &::before {
-        width: 6px;
-        height: 12px;
-        flex: 0 0 6px;
-        background-image: radial-gradient(circle, #8b8b8b 1px, transparent 1.2px);
-        background-position: center;
-        background-size: 3px 4px;
+        width: 8px;
+        height: 1px;
+        flex: 0 0 8px;
+        background: #8b8b8b;
+        box-shadow:
+          0 4px #8b8b8b,
+          0 8px #8b8b8b;
         content: '';
         opacity: 0.72;
+        transform: translateY(-4px);
       }
 
       &:active {
@@ -156,7 +158,10 @@ button {
 
       &:hover::before,
       &:focus-visible::before {
-        background-image: radial-gradient(circle, #1a73e8 1px, transparent 1.2px);
+        background: #1a73e8;
+        box-shadow:
+          0 4px #1a73e8,
+          0 8px #1a73e8;
         opacity: 1;
       }
     }
@@ -222,7 +227,7 @@ button {
 
     &.remove {
       background-image: url(../img/remove.svg);
-      background-size: 11px;
+      background-size: 13px;
     }
 
     &.options {
