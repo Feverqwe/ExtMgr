@@ -10,14 +10,11 @@ import {
 } from 'react';
 import uuidv4 from 'uuid/v4';
 import extensionTypes from '../tools/extensionTypes';
-import getLogger from '../tools/getLogger';
 import toCameCase from '../tools/toCameCase';
 import chromePopupServices, {
   type PopupEventHandlers,
   type PopupServices,
 } from './chromePopupServices';
-
-const logger = getLogger('PopupContext');
 
 export interface UserGroupSnapshot {
   id: string;
@@ -327,7 +324,7 @@ export const PopupProvider = ({
         unsubscribe = services.subscribe(handlers);
       })
       .catch((error: unknown) => {
-        logger.error('init error', error);
+        console.error('[PopupContext] init error', error);
         if (!destroyed) commit({type: 'initError'});
       });
 
@@ -355,7 +352,7 @@ export const PopupProvider = ({
       try {
         await services.setExtensionEnabled(id, enabled);
       } catch (error) {
-        logger.error('setEnabled error', error);
+        console.error('[PopupContext] setEnabled error', error);
       } finally {
         commit({type: 'setExtensionLoading', id, isLoading: false});
       }
@@ -369,7 +366,7 @@ export const PopupProvider = ({
       try {
         await services.uninstallExtension(id);
       } catch (error) {
-        logger.error('uninstall error', error);
+        console.error('[PopupContext] uninstall error', error);
       } finally {
         commit({type: 'setExtensionLoading', id, isLoading: false});
       }
@@ -387,7 +384,7 @@ export const PopupProvider = ({
           ),
         );
       } catch (error) {
-        logger.error('setEnabled error', error);
+        console.error('[PopupContext] setEnabled error', error);
       } finally {
         commit({type: 'setGroupLoading', id, isLoading: false});
       }
@@ -404,7 +401,7 @@ export const PopupProvider = ({
     (options: MoveExtensionOptions) => {
       const nextState = commit({type: 'moveExtension', options});
       saveGroups(nextState.groups).catch((error: unknown) =>
-        logger.error('save groups error', error),
+        console.error('[PopupContext] save groups error', error),
       );
     },
     [commit, saveGroups],
@@ -415,7 +412,7 @@ export const PopupProvider = ({
       try {
         await services.launchExtension(id);
       } catch (error) {
-        logger.error('launch error', error);
+        console.error('[PopupContext] launch error', error);
       }
     },
     [services],
@@ -428,7 +425,7 @@ export const PopupProvider = ({
       try {
         await services.openExtensionOptions(optionsUrl);
       } catch (error) {
-        logger.error('open options error', error);
+        console.error('[PopupContext] open options error', error);
       }
     },
     [services],

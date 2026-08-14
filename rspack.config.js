@@ -71,12 +71,6 @@ module.exports = (_env, argv) => {
           {from: './src/assets/icons', to: './assets/icons'},
         ],
       }),
-      new rspack.DefinePlugin({
-        BUILD_ENV: JSON.stringify({
-          mode: isDevelopment ? 'development' : 'production',
-          FLAG_ENABLE_LOGGER: true,
-        }),
-      }),
     ],
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx'],
