@@ -172,4 +172,4 @@ Stories должны быть детерминированными и не об�
 - Версию релиза обновляйте в `src/manifest.json`; имя ZIP формируется автоматически.
 - Не редактируйте и не коммитьте `dist/`, `storybook-static/` и `node_modules/`.
 
-Правила для coding agents находятся в `AGENTS.md` и scoped-файлах внутри `src/` и `builder/`.
+Правила для coding agents находятся в `AGENTS.md` и scoped-файлах внутри `src/`, `builder/` и `.storybook/`.
