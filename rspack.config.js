@@ -31,7 +31,7 @@ module.exports = (_env, argv) => {
             options: {
               detectSyntax: 'auto',
               jsc: {
-                target: 'es2018',
+                target: 'es2022',
                 transform: {
                   react: {
                     runtime: 'automatic',

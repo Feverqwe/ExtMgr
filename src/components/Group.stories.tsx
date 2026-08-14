@@ -1,82 +1,60 @@
 import {DndContext} from '@dnd-kit/core';
 import type {Meta, StoryObj} from '@storybook/react-vite';
+import {PopupProvider, type PopupInitialData} from '../context/PopupContext';
+import {createExtension, popupStoryServices} from '../stories/popupFixtures';
 import Group from './Group';
-import RootStore from '../stores/RootStore';
 
-const createStore = (secondExtensionEnabled: boolean) =>
-  new RootStore({
-    groups: [
-      {
-        id: 'development',
-        name: 'Development',
-        ids: ['devtools', 'formatter'],
-      },
-    ],
-    extensions: {
-      devtools: {
-        id: 'devtools',
-        name: 'Developer Tools',
-        shortName: 'DevTools',
-        description: 'Developer utilities',
-        version: '2.4.0',
-        mayDisable: true,
-        enabled: true,
-        isApp: false,
-        type: 'extension',
-        offlineEnabled: true,
-        optionsUrl: 'chrome-extension://devtools/options.html',
-        icons: [],
-        permissions: ['storage'],
-        hostPermissions: [],
-        installType: 'normal',
-        availableLaunchTypes: [],
-      },
-      formatter: {
-        id: 'formatter',
-        name: 'Page Formatter',
-        shortName: 'Formatter',
-        description: 'Formats the current page',
-        version: '1.8.2',
-        mayDisable: true,
-        enabled: secondExtensionEnabled,
-        isApp: false,
-        type: 'extension',
-        offlineEnabled: true,
-        optionsUrl: '',
-        icons: [],
-        permissions: ['activeTab'],
-        hostPermissions: [],
-        installType: 'normal',
-        availableLaunchTypes: [],
-      },
+const createData = (secondExtensionEnabled: boolean): PopupInitialData => ({
+  groups: [
+    {
+      id: 'development',
+      name: 'Development',
+      ids: ['devtools', 'formatter'],
     },
-  });
+  ],
+  extensions: {
+    devtools: {
+      ...createExtension('devtools', 'Developer Tools'),
+      shortName: 'DevTools',
+      description: 'Developer utilities',
+      version: '2.4.0',
+      optionsUrl: 'chrome-extension://devtools/options.html',
+      permissions: ['storage'],
+    },
+    formatter: {
+      ...createExtension('formatter', 'Page Formatter', secondExtensionEnabled),
+      shortName: 'Formatter',
+      description: 'Formats the current page',
+      version: '1.8.2',
+      permissions: ['activeTab'],
+    },
+  },
+});
+
+const renderGroup = (secondExtensionEnabled: boolean) => (
+  <PopupProvider
+    initialData={createData(secondExtensionEnabled)}
+    initialize={false}
+    services={popupStoryServices}
+  >
+    <DndContext>
+      <Group groupId="development" />
+    </DndContext>
+  </PopupProvider>
+);
 
 const meta: Meta<typeof Group> = {
   title: 'Popup/Group',
   component: Group,
-  decorators: [
-    (Story) => (
-      <DndContext>
-        <Story />
-      </DndContext>
-    ),
-  ],
 };
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Enabled: Story = {
-  render: () => {
-    const store = createStore(true);
-    return <Group groupStore={store.groups[0]} />;
-  },
+  render: () => renderGroup(true),
 };
 
 export const PartiallyDisabled: Story = {
-  render: () => {
-    const store = createStore(false);
-    return <Group groupStore={store.groups[0]} />;
-  },
+  render: () => renderGroup(false),
 };

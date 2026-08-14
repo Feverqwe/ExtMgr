@@ -1,17 +1,22 @@
 import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
 import type React from 'react';
-import type ExtensionStore from '../stores/ExtensionStore';
-import useStoreVersion from '../stores/useStoreVersion';
+import {usePopup} from '../context/PopupContext';
 import emptyIcon from '../assets/img/empty.svg';
 
 interface ExtensionProps {
-  extensionStore: ExtensionStore;
+  extensionId: string;
   groupId: string;
 }
 
-const Extension = ({extensionStore, groupId}: ExtensionProps) => {
-  useStoreVersion(extensionStore);
+const Extension = ({extensionId, groupId}: ExtensionProps) => {
+  const {
+    extensions,
+    launchExtension,
+    openExtensionOptions,
+    setExtensionEnabled,
+    uninstallExtension,
+  } = usePopup();
   const {
     attributes,
     isDragging,
@@ -21,9 +26,12 @@ const Extension = ({extensionStore, groupId}: ExtensionProps) => {
     transform,
     transition,
   } = useSortable({
-    id: extensionStore.id,
+    id: extensionId,
     data: {kind: 'extension', groupId},
   });
+  const extension = extensions.get(extensionId);
+
+  if (!extension) return null;
 
   const handleToggle = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -34,37 +42,33 @@ const Extension = ({extensionStore, groupId}: ExtensionProps) => {
       (target instanceof Element &&
         (target.matches('.name span') || target.matches('.name') || target.matches('.switch')))
     ) {
-      extensionStore.setEnabled(!extensionStore.enabled);
+      setExtensionEnabled(extension.id, !extension.enabled);
     }
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.preventDefault();
-    extensionStore.setEnabled(!extensionStore.enabled);
+    setExtensionEnabled(extension.id, !extension.enabled);
   };
 
   const handleLaunch = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-    extensionStore.launch();
+    launchExtension(extension.id);
   };
 
   const handleOptions = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-    extensionStore.openOptions();
+    openExtensionOptions(extension.id);
   };
 
   const handleUninstall = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-    extensionStore.uninstall();
+    uninstallExtension(extension.id);
   };
 
   const classNames = ['item extension'];
-  if (extensionStore.isLoading) {
-    classNames.push('loading');
-  }
-  if (isDragging) {
-    classNames.push('dragging');
-  }
+  if (extension.isLoading) classNames.push('loading');
+  if (isDragging) classNames.push('dragging');
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -72,8 +76,8 @@ const Extension = ({extensionStore, groupId}: ExtensionProps) => {
   };
 
   const actions: React.ReactNode[] = [];
-  if (extensionStore.enabled) {
-    if (extensionStore.launchType) {
+  if (extension.enabled) {
+    if (extension.launchType) {
       actions.push(
         <a
           key="launch"
@@ -84,7 +88,7 @@ const Extension = ({extensionStore, groupId}: ExtensionProps) => {
         />,
       );
     }
-    if (extensionStore.optionsUrl) {
+    if (extension.optionsUrl) {
       actions.push(
         <a
           key="options"
@@ -106,25 +110,25 @@ const Extension = ({extensionStore, groupId}: ExtensionProps) => {
     />,
   );
 
-  const enabledTitle = extensionStore.enabled
+  const enabledTitle = extension.enabled
     ? chrome.i18n.getMessage('disable')
     : chrome.i18n.getMessage('enable');
 
   return (
     <div
       ref={setNodeRef}
-      id={extensionStore.id}
+      id={extension.id}
       className={classNames.join(' ')}
       style={style}
       onClick={handleToggle}
-      title={extensionStore.descriptionTitle}
+      title={extension.descriptionTitle}
     >
       <div className="field switch">
         <input
           type="checkbox"
           title={enabledTitle}
-          checked={extensionStore.enabled}
-          disabled={!extensionStore.mayDisable}
+          checked={extension.enabled}
+          disabled={!extension.mayDisable}
           onChange={handleChange}
         />
       </div>
@@ -135,10 +139,10 @@ const Extension = ({extensionStore, groupId}: ExtensionProps) => {
         {...attributes}
         {...listeners}
       >
-        <img src={extensionStore.icon19 || emptyIcon} alt="" />
+        <img src={extension.icon19 || emptyIcon} alt="" />
       </div>
       <div className="field name">
-        <span>{extensionStore.name}</span>
+        <span>{extension.name}</span>
       </div>
       <div className="field action">{actions}</div>
     </div>

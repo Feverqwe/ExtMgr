@@ -3,7 +3,7 @@
     "allowJs": false,
     "strict": true,
     "noEmit": true,
-    "target": "ES2018",
+    "target": "ES2022",
     "module": "ESNext",
     "jsx": "react-jsx",
     "moduleResolution": "Bundler",

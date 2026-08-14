@@ -4,27 +4,27 @@ These instructions apply under `src/` and supplement the repository-level `AGENT
 
 ## Runtime architecture
 
-- `App.tsx` creates `RootStore`, exposes it as `window.rootStore` for debugging, and mounts the React popup with `createRoot()`.
-- `Popup` initializes extension data and Chrome listeners through `RootStore.init()` in an effect.
-- `RootStore` owns discovery, event listeners, user/computed groups, and persistence.
+- `App.tsx` mounts the popup inside `PopupProvider` with `createRoot()`.
+- `PopupProvider` owns discovery, state transitions, Chrome listeners, user/computed groups, and serialized persistence.
+- `chromePopupServices.ts` is the typed boundary around Promise-based Manifest V3 Chrome APIs.
 - User groups store ordered extension IDs; computed groups derive members not referenced by user groups.
-- `global.d.ts`, `assets.d.ts`, and `vendor.d.ts` define the narrow global/module boundaries needed by Rspack, Chrome, assets, and untyped legacy packages.
+- `global.d.ts` and `assets.d.ts` define the narrow global/module boundaries needed by Rspack, Chrome, and assets.
 
 ## Type and state conventions
 
 - Use `.ts`/`.tsx` and keep `npm run tsc` clean in strict mode.
 - The project uses the automatic JSX transform; import only the React APIs and types each TSX module uses.
-- Keep store mutations inside typed store methods and call `RootStore.notify()` after observable state changes.
-- Components subscribe to stores through `useStoreVersion()` and React's `useSyncExternalStore`.
-- Keep callback-based Chrome APIs behind typed Promise wrappers and inspect `chrome.runtime.lastError` inside callbacks.
-- Resolve extension data by ID through the root store; do not duplicate full extension data in groups.
+- Keep shared popup mutations in the typed reducer/actions exposed by `usePopup()`.
+- Components read shared state and actions through `usePopup()`; keep short-lived view state local.
+- Keep Chrome APIs behind `PopupServices` and handle rejected promises at the context boundary.
+- Resolve extension data by ID through the context; do not duplicate full extension data in groups.
 - Keep persisted group snapshots limited to `{id, name, ids}` unless a storage migration is included.
 - Preserve group IDs that do not currently resolve to an installed extension; they may become valid after sync or reinstall.
-- Computed group edit/persistence methods are intentional no-ops because those groups are derived.
+- Computed groups are derived and must not be edited or persisted.
 
 ## UI and Storybook conventions
 
-- Components receive stores through typed props and subscribe without third-party state bindings.
+- Components receive shared popup data through context without third-party state bindings.
 - Keep dnd-kit orchestration in `Popup`; extension icons are the pointer and keyboard drag activators.
 - Group headers and extension rows share `.item`; only extension icons are drag handles.
 - Action links must prevent their intended action from becoming a row toggle.

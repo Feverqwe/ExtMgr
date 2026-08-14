@@ -9,35 +9,23 @@ import {
   type SyntheticEvent,
 } from 'react';
 import Extension from './Extension';
-import type ExtensionStore from '../stores/ExtensionStore';
-import useStoreVersion from '../stores/useStoreVersion';
-
-interface GroupStoreLike {
-  id: string;
-  name: string;
-  computed?: string;
-  isLoading: boolean;
-  isChecked: boolean;
-  extensions: readonly ExtensionStore[];
-  subscribe(listener: () => void): () => void;
-  getVersion(): number;
-  setEnabled(enabled: boolean): Promise<void>;
-  setName(name: string): void;
-  save(): Promise<void> | void;
-}
+import {usePopup} from '../context/PopupContext';
 
 interface GroupProps {
-  groupStore: GroupStoreLike;
+  groupId: string;
 }
 
-const Group = ({groupStore}: GroupProps) => {
-  useStoreVersion(groupStore);
+const Group = ({groupId}: GroupProps) => {
+  const {groups, renameGroup, saveGroups, setGroupEnabled} = usePopup();
+  const group = groups.find(({id}) => id === groupId);
   const {isOver, setNodeRef} = useDroppable({
-    id: `drop:group:${groupStore.id}`,
-    data: {kind: 'group', groupId: groupStore.id},
+    id: `drop:group:${groupId}`,
+    data: {kind: 'group', groupId},
   });
   const [editing, setEditing] = useState(false);
   const form = useRef<HTMLFormElement>(null);
+
+  if (!group) return null;
 
   const handleEdit = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -49,8 +37,8 @@ const Group = ({groupStore}: GroupProps) => {
     const name = form.current?.elements.namedItem('name') as HTMLInputElement | null;
 
     if (name) {
-      groupStore.setName(name.value);
-      groupStore.save();
+      renameGroup(group.id, name.value);
+      saveGroups();
     }
     setEditing(false);
   };
@@ -64,45 +52,39 @@ const Group = ({groupStore}: GroupProps) => {
       (target instanceof Element &&
         (target.matches('.name span') || target.matches('.name') || target.matches('.switch')))
     ) {
-      groupStore.setEnabled(!groupStore.isChecked);
+      setGroupEnabled(group.id, !group.isChecked);
     }
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     event.preventDefault();
-    groupStore.setEnabled(!groupStore.isChecked);
+    setGroupEnabled(group.id, !group.isChecked);
   };
 
-  const extensions = groupStore.extensions.map((extension) => (
-    <Extension key={extension.id} extensionStore={extension} groupId={groupStore.id} />
+  const extensions = group.extensionIds.map((extensionId) => (
+    <Extension key={extensionId} extensionId={extensionId} groupId={group.id} />
   ));
 
-  if (!extensions.length) {
-    return null;
-  }
+  if (!extensions.length) return null;
 
   const headerClassNames = ['item group'];
-  if (groupStore.isLoading) {
-    headerClassNames.push('loading');
-  }
-  if (isOver) {
-    headerClassNames.push('drop-target');
-  }
+  if (group.isLoading) headerClassNames.push('loading');
+  if (isOver) headerClassNames.push('drop-target');
 
   let name: ReactNode;
   if (editing) {
     headerClassNames.push('edit');
     name = (
       <form ref={form} onSubmit={handleSave}>
-        <input name="name" defaultValue={groupStore.name} type="text" />
+        <input name="name" defaultValue={group.name} type="text" />
       </form>
     );
   } else {
-    name = <span>{groupStore.name}</span>;
+    name = <span>{group.name}</span>;
   }
 
   const actions: ReactNode[] = [];
-  if (!groupStore.computed) {
+  if (!group.computed) {
     if (editing) {
       actions.push(
         <a
@@ -130,20 +112,17 @@ const Group = ({groupStore}: GroupProps) => {
     <>
       <div
         ref={setNodeRef}
-        id={groupStore.id}
+        id={group.id}
         className={headerClassNames.join(' ')}
         onClick={handleToggle}
       >
         <div className="field switch">
-          <input type="checkbox" checked={groupStore.isChecked} onChange={handleChange} />
+          <input type="checkbox" checked={group.isChecked} onChange={handleChange} />
         </div>
         <div className="field name">{name}</div>
         <div className="field action">{actions}</div>
       </div>
-      <SortableContext
-        items={groupStore.extensions.map(({id}) => id)}
-        strategy={verticalListSortingStrategy}
-      >
+      <SortableContext items={group.extensionIds} strategy={verticalListSortingStrategy}>
         {extensions}
       </SortableContext>
     </>
