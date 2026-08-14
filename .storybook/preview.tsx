@@ -4,12 +4,20 @@ import '../src/assets/css/popup.less';
 const messages: Record<string, string> = {
   disable: 'Disable',
   edit: 'Edit',
+  emptyTitle: 'No extensions found',
   enable: 'Enable',
+  extensionType: 'Extensions',
+  groupName: 'Group name',
   launch: 'Launch',
+  loadError: 'Extensions could not be loaded',
+  loading: 'Loading extensions…',
   move: 'Move',
+  newGroup: 'New group',
   options: 'Options',
   save: 'Save',
+  themeType: 'Themes',
   uninstall: 'Uninstall',
+  unknownType: 'Unknown',
 };
 
 const i18nMock = {
@@ -31,7 +39,7 @@ if (typeof globalThis.chrome === 'undefined') {
 const preview: Preview = {
   decorators: [
     (Story) => (
-      <div className="groups">
+      <div className="story-canvas">
         <Story />
       </div>
     ),

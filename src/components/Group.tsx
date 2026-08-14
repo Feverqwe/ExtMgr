@@ -1,9 +1,11 @@
 import {useDroppable} from '@dnd-kit/core';
 import {SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
 import {
+  useEffect,
   useRef,
   useState,
   type ChangeEvent,
+  type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
   type SyntheticEvent,
@@ -24,10 +26,29 @@ const Group = ({groupId}: GroupProps) => {
   });
   const [editing, setEditing] = useState(false);
   const form = useRef<HTMLFormElement>(null);
+  const input = useRef<HTMLInputElement>(null);
+  const checkbox = useRef<HTMLInputElement>(null);
+  const actionButton = useRef<HTMLButtonElement>(null);
+  const restoreActionFocus = useRef(false);
+
+  useEffect(() => {
+    if (checkbox.current) checkbox.current.indeterminate = group?.isIndeterminate ?? false;
+  }, [group?.isIndeterminate]);
+
+  useEffect(() => {
+    if (editing) input.current?.select();
+  }, [editing]);
+
+  useEffect(() => {
+    if (!editing && restoreActionFocus.current) {
+      restoreActionFocus.current = false;
+      actionButton.current?.focus();
+    }
+  }, [editing]);
 
   if (!group) return null;
 
-  const handleEdit = (event: MouseEvent<HTMLAnchorElement>) => {
+  const handleEdit = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     setEditing(true);
   };
@@ -36,29 +57,30 @@ const Group = ({groupId}: GroupProps) => {
     event.preventDefault();
     const name = form.current?.elements.namedItem('name') as HTMLInputElement | null;
 
-    if (name) {
-      renameGroup(group.id, name.value);
-      saveGroups();
+    const nextName = name?.value.trim();
+
+    if (nextName && nextName !== group.name) {
+      renameGroup(group.id, nextName);
+      saveGroups().catch((error: unknown) => console.error('[Group] save error', error));
     }
+    restoreActionFocus.current = true;
     setEditing(false);
   };
 
-  const handleToggle = (event: MouseEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    const target = event.target;
-
-    if (
-      target === event.currentTarget ||
-      (target instanceof Element &&
-        (target.matches('.name span') || target.matches('.name') || target.matches('.switch')))
-    ) {
-      setGroupEnabled(group.id, !group.isChecked);
-    }
+  const handleToggle = () => {
+    setGroupEnabled(group.id, !group.isChecked);
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    event.preventDefault();
-    setGroupEnabled(group.id, !group.isChecked);
+    setGroupEnabled(group.id, event.target.checked);
+  };
+
+  const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      restoreActionFocus.current = true;
+      setEditing(false);
+    }
   };
 
   const extensions = group.extensionIds.map((extensionId) => (
@@ -76,31 +98,52 @@ const Group = ({groupId}: GroupProps) => {
     headerClassNames.push('edit');
     name = (
       <form ref={form} onSubmit={handleSave}>
-        <input name="name" defaultValue={group.name} type="text" />
+        <input
+          ref={input}
+          name="name"
+          defaultValue={group.name}
+          aria-label={chrome.i18n.getMessage('groupName')}
+          maxLength={60}
+          type="text"
+          onKeyDown={handleInputKeyDown}
+        />
       </form>
     );
   } else {
-    name = <span>{group.name}</span>;
+    name = (
+      <button
+        type="button"
+        className="name-button"
+        disabled={group.isLoading}
+        onClick={handleToggle}
+      >
+        <span>{group.name}</span>
+      </button>
+    );
   }
 
   const actions: ReactNode[] = [];
   if (!group.computed) {
     if (editing) {
       actions.push(
-        <a
+        <button
+          ref={actionButton}
+          type="button"
           key="save"
           title={chrome.i18n.getMessage('save')}
-          href="#save"
+          aria-label={`${chrome.i18n.getMessage('save')}: ${group.name}`}
           onClick={handleSave}
           className="btn save"
         />,
       );
     } else {
       actions.push(
-        <a
+        <button
+          ref={actionButton}
+          type="button"
           key="edit"
           title={chrome.i18n.getMessage('edit')}
-          href="#edit"
+          aria-label={`${chrome.i18n.getMessage('edit')}: ${group.name}`}
           onClick={handleEdit}
           className="btn edit"
         />,
@@ -109,15 +152,22 @@ const Group = ({groupId}: GroupProps) => {
   }
 
   return (
-    <>
+    <section className="group-block" aria-label={group.name}>
       <div
         ref={setNodeRef}
         id={group.id}
         className={headerClassNames.join(' ')}
-        onClick={handleToggle}
+        aria-busy={group.isLoading}
       >
         <div className="field switch">
-          <input type="checkbox" checked={group.isChecked} onChange={handleChange} />
+          <input
+            ref={checkbox}
+            type="checkbox"
+            aria-label={`${group.name}: ${chrome.i18n.getMessage(group.isChecked ? 'disable' : 'enable')}`}
+            checked={group.isChecked}
+            disabled={group.isLoading}
+            onChange={handleChange}
+          />
         </div>
         <div className="field name">{name}</div>
         <div className="field action">{actions}</div>
@@ -125,7 +175,7 @@ const Group = ({groupId}: GroupProps) => {
       <SortableContext items={group.extensionIds} strategy={verticalListSortingStrategy}>
         {extensions}
       </SortableContext>
-    </>
+    </section>
   );
 };
 

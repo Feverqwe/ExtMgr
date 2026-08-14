@@ -33,35 +33,25 @@ const Extension = ({extensionId, groupId}: ExtensionProps) => {
 
   if (!extension) return null;
 
-  const handleToggle = (event: React.MouseEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    const target = event.target;
-
-    if (
-      target === event.currentTarget ||
-      (target instanceof Element &&
-        (target.matches('.name span') || target.matches('.name') || target.matches('.switch')))
-    ) {
-      setExtensionEnabled(extension.id, !extension.enabled);
-    }
-  };
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    event.preventDefault();
+  const handleToggle = () => {
     setExtensionEnabled(extension.id, !extension.enabled);
   };
 
-  const handleLaunch = (event: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setExtensionEnabled(extension.id, event.target.checked);
+  };
+
+  const handleLaunch = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     launchExtension(extension.id);
   };
 
-  const handleOptions = (event: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleOptions = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     openExtensionOptions(extension.id);
   };
 
-  const handleUninstall = (event: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleUninstall = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     uninstallExtension(extension.id);
   };
@@ -79,10 +69,11 @@ const Extension = ({extensionId, groupId}: ExtensionProps) => {
   if (extension.enabled) {
     if (extension.launchType) {
       actions.push(
-        <a
+        <button
+          type="button"
           key="launch"
           title={chrome.i18n.getMessage('launch')}
-          href="#launch"
+          aria-label={`${chrome.i18n.getMessage('launch')}: ${extension.name}`}
           className="btn launch"
           onClick={handleLaunch}
         />,
@@ -90,10 +81,11 @@ const Extension = ({extensionId, groupId}: ExtensionProps) => {
     }
     if (extension.optionsUrl) {
       actions.push(
-        <a
+        <button
+          type="button"
           key="options"
           title={chrome.i18n.getMessage('options')}
-          href="#options"
+          aria-label={`${chrome.i18n.getMessage('options')}: ${extension.name}`}
           className="btn options"
           onClick={handleOptions}
         />,
@@ -101,10 +93,11 @@ const Extension = ({extensionId, groupId}: ExtensionProps) => {
     }
   }
   actions.push(
-    <a
+    <button
+      type="button"
       key="uninstall"
       title={chrome.i18n.getMessage('uninstall')}
-      href="#uninstall"
+      aria-label={`${chrome.i18n.getMessage('uninstall')}: ${extension.name}`}
       className="btn remove"
       onClick={handleUninstall}
     />,
@@ -120,29 +113,38 @@ const Extension = ({extensionId, groupId}: ExtensionProps) => {
       id={extension.id}
       className={classNames.join(' ')}
       style={style}
-      onClick={handleToggle}
-      title={extension.descriptionTitle}
+      aria-busy={extension.isLoading}
     >
       <div className="field switch">
         <input
           type="checkbox"
           title={enabledTitle}
+          aria-label={`${extension.name}: ${enabledTitle}`}
           checked={extension.enabled}
-          disabled={!extension.mayDisable}
+          disabled={!extension.mayDisable || extension.isLoading}
           onChange={handleChange}
         />
       </div>
       <div
         ref={setActivatorNodeRef}
-        className="field icon"
+        className="field icon drag-handle"
         title={chrome.i18n.getMessage('move')}
         {...attributes}
         {...listeners}
+        aria-label={`${chrome.i18n.getMessage('move')}: ${extension.name}`}
       >
         <img src={extension.icon19 || emptyIcon} alt="" />
       </div>
       <div className="field name">
-        <span>{extension.name}</span>
+        <button
+          type="button"
+          className="name-button"
+          title={extension.descriptionTitle}
+          disabled={!extension.mayDisable || extension.isLoading}
+          onClick={handleToggle}
+        >
+          {extension.name}
+        </button>
       </div>
       <div className="field action">{actions}</div>
     </div>

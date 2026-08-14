@@ -37,9 +37,11 @@ const renderGroup = (secondExtensionEnabled: boolean) => (
     initialize={false}
     services={popupStoryServices}
   >
-    <DndContext>
-      <Group groupId="development" />
-    </DndContext>
+    <div className="groups">
+      <DndContext>
+        <Group groupId="development" />
+      </DndContext>
+    </div>
   </PopupProvider>
 );
 

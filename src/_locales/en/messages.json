@@ -20,11 +20,26 @@
   "move": {
     "message": "Move"
   },
+  "newGroup": {
+    "message": "New group"
+  },
   "save": {
     "message": "Save"
   },
   "edit": {
     "message": "Edit"
+  },
+  "groupName": {
+    "message": "Group name"
+  },
+  "loading": {
+    "message": "Loading extensions…"
+  },
+  "loadError": {
+    "message": "Extensions could not be loaded"
+  },
+  "emptyTitle": {
+    "message": "No extensions found"
   },
   "extensionType": {
     "message": "Extensions"

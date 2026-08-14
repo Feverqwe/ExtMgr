@@ -20,11 +20,26 @@
   "move": {
     "message": "Переместить"
   },
+  "newGroup": {
+    "message": "Новая группа"
+  },
   "save": {
     "message": "Применить"
   },
   "edit": {
     "message": "Редактировать"
+  },
+  "groupName": {
+    "message": "Название группы"
+  },
+  "loading": {
+    "message": "Загружаем расширения…"
+  },
+  "loadError": {
+    "message": "Не удалось загрузить расширения"
+  },
+  "emptyTitle": {
+    "message": "Расширения не найдены"
   },
   "extensionType": {
     "message": "Extensions"

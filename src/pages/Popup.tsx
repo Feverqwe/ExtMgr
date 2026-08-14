@@ -13,7 +13,7 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core';
 import {sortableKeyboardCoordinates} from '@dnd-kit/sortable';
-import {useState} from 'react';
+import {useState, type ReactNode} from 'react';
 import Group from '../components/Group';
 import {usePopup, type ExtensionView} from '../context/PopupContext';
 import emptyIcon from '../assets/img/empty.svg';
@@ -28,18 +28,23 @@ const collisionDetection: CollisionDetection = (args) => {
   return pointerCollisions.length ? pointerCollisions : rectIntersection(args);
 };
 
-const GroupsDropzone = () => {
+const GroupsDropzone = ({isDragging}: {isDragging: boolean}) => {
   const {groups} = usePopup();
-  const {setNodeRef} = useDroppable({
+  const {isOver, setNodeRef} = useDroppable({
     id: NEW_GROUP_DROP_ID,
     data: {kind: 'new-group'},
   });
 
   return (
-    <div ref={setNodeRef} className="groups">
+    <div ref={setNodeRef} className={`groups${isDragging ? ' drag-active' : ''}`}>
       {groups.map((group) => (
         <Group key={group.id} groupId={group.id} />
       ))}
+      {isDragging ? (
+        <div className={`new-group-drop${isOver ? ' active' : ''}`}>
+          {chrome.i18n.getMessage('newGroup')}
+        </div>
+      ) : null}
     </div>
   );
 };
@@ -57,7 +62,7 @@ const DragPreview = ({extension}: {extension: ExtensionView}) => (
 );
 
 export const PopupView = () => {
-  const {extensions, groups, moveExtension} = usePopup();
+  const {extensions, groups, moveExtension, status} = usePopup();
   const [activeExtensionId, setActiveExtensionId] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {activationConstraint: {distance: 4}}),
@@ -105,6 +110,26 @@ export const PopupView = () => {
     });
   };
 
+  let content: ReactNode;
+  if (status === 'pending' || status === 'idle') {
+    content = (
+      <div className="popup-state loading-state" aria-live="polite">
+        <span className="state-spinner" aria-hidden="true" />
+        <span>{chrome.i18n.getMessage('loading')}</span>
+      </div>
+    );
+  } else if (status === 'error') {
+    content = (
+      <div className="popup-state error-state" role="alert">
+        {chrome.i18n.getMessage('loadError')}
+      </div>
+    );
+  } else if (extensions.size === 0) {
+    content = <div className="popup-state empty-state">{chrome.i18n.getMessage('emptyTitle')}</div>;
+  } else {
+    content = <GroupsDropzone isDragging={activeExtensionId !== null} />;
+  }
+
   return (
     <DndContext
       sensors={sensors}
@@ -113,7 +138,7 @@ export const PopupView = () => {
       onDragCancel={() => setActiveExtensionId(null)}
       onDragEnd={handleDragEnd}
     >
-      <GroupsDropzone />
+      <main className="popup-shell">{content}</main>
       <DragOverlay>
         {activeExtension ? (
           <div className="groups drag-overlay-groups">

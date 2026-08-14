@@ -1,149 +1,334 @@
-body {
-  margin: 0;
-  font-family: 'Segoe UI', Tahoma, sans-serif;
-  font-size: 14px;
-
-  width: 320px;
-  min-height: 164px;
+:root {
+  color-scheme: light;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  width: 320px;
+  max-width: 100vw;
+  min-height: 164px;
+  overflow: hidden;
+  background: #ffffff;
+  color: #202124;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  font-size: 14px;
+}
+
+button,
 input {
   margin: 0;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  overflow: visible;
+  color: inherit;
+  font: inherit;
+}
+
+button {
+  border: 0;
+}
+
+.popup-shell,
+.groups {
+  width: 320px;
+  max-width: 100vw;
+  min-height: 164px;
+  background: #ffffff;
 }
 
 .groups {
-  width: 320px;
-  min-height: 164px;
   max-height: 480px;
+  overflow-x: hidden;
   overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #a8a8a8;
+  }
+
   &.drag-overlay-groups {
     min-height: 0;
     max-height: none;
     overflow: visible;
     pointer-events: none;
   }
-  &::-webkit-scrollbar {
-    width: 8px;
-    background-color: #eeeeee;
-  }
-  &::-webkit-scrollbar-track {
-    background-color: #eeeeee;
-  }
-  &::-webkit-scrollbar-thumb {
-    background-color: #777777;
+}
+
+.group-block + .group-block {
+  border-top: 1px solid #d9d9d9;
+}
+
+.item {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 30px;
+  align-items: center;
+  padding: 2px 3px;
+
+  &:hover {
+    background: #f2f2f2;
   }
 
-  .item {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+  &.dragging {
+    opacity: 0.28;
+  }
+
+  &.drag-overlay {
+    width: 320px;
+    border: 1px solid #d0d0d0;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    cursor: grabbing;
+  }
+
+  &.loading {
+    cursor: wait;
+    opacity: 0.62;
+  }
+
+  .field {
+    min-width: 0;
+
+    &.switch {
+      display: flex;
+      width: 25px;
+      min-width: 25px;
+      align-items: center;
+      justify-content: center;
+
+      input {
+        width: 14px;
+        height: 14px;
+        accent-color: #1a73e8;
+      }
+    }
+
+    &.icon {
+      display: flex;
+      width: 25px;
+      min-width: 25px;
+      height: 25px;
+      align-items: center;
+      justify-content: center;
+
+      img {
+        width: 19px;
+        height: 19px;
+        object-fit: contain;
+      }
+    }
+
+    &.drag-handle {
+      width: 35px;
+      min-width: 35px;
+      gap: 3px;
+      cursor: grab;
+      touch-action: none;
+
+      &::before {
+        width: 6px;
+        height: 12px;
+        flex: 0 0 6px;
+        background-image: radial-gradient(circle, #8b8b8b 1px, transparent 1.2px);
+        background-position: center;
+        background-size: 3px 4px;
+        content: '';
+        opacity: 0.72;
+      }
+
+      &:active {
+        cursor: grabbing;
+      }
+
+      &:focus-visible {
+        outline: 2px solid #1a73e8;
+        outline-offset: -1px;
+      }
+
+      &:hover::before,
+      &:focus-visible::before {
+        background-image: radial-gradient(circle, #1a73e8 1px, transparent 1.2px);
+        opacity: 1;
+      }
+    }
+
+    &.name {
+      flex: 1 1 auto;
+      margin: 0 3px;
+      overflow: hidden;
+    }
+
+    &.action {
+      display: flex;
+      flex: 0 0 auto;
+      align-items: center;
+    }
+  }
+
+  .name-button {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    height: 25px;
     padding: 2px 0;
+    overflow: hidden;
+    background: transparent;
     cursor: pointer;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.55;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #1a73e8;
+      outline-offset: -1px;
+    }
+  }
+
+  .btn {
+    display: block;
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    padding: 0;
+    background-color: transparent;
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    opacity: 0.5;
+
+    &:hover,
+    &:focus-visible {
+      opacity: 1;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #1a73e8;
+      outline-offset: -2px;
+    }
+
+    &.remove {
+      background-image: url(../img/remove.svg);
+      background-size: 11px;
+    }
+
+    &.options {
+      background-image: url(../img/options.svg);
+      background-size: 15px;
+    }
+
+    &.launch {
+      background-image: url(../img/rocket.svg);
+      background-size: 15px;
+    }
+
+    &.edit {
+      background-image: url(../img/edit.svg);
+      background-size: 15px;
+    }
+
+    &.save {
+      background-image: url(../img/save.svg);
+      background-size: 15px;
+    }
+  }
+
+  &.group {
+    min-height: 32px;
+    background: #fafafa;
+    font-size: 15px;
+    font-weight: 400;
+
     &:hover {
-      background-color: #eee;
+      background: #f2f2f2;
     }
-    &.dragging {
-      opacity: 0.25;
+
+    &.drop-target {
+      background: #e8f0fe;
     }
-    &.drag-overlay {
-      width: 320px;
-      background-color: #fff;
-      box-shadow: 0 2px 8px fade(#000, 20%);
-      cursor: grabbing;
+
+    form {
+      width: 100%;
     }
-    .field {
-      &.switch {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 22px;
-        min-width: 22px;
-        height: 22px;
-      }
-      &.icon {
-        display: flex;
-        cursor: move;
-        touch-action: none;
-        width: 22px;
-        min-width: 22px;
-        height: 22px;
-        align-items: center;
-        justify-content: center;
-        img {
-          width: 19px;
-          height: 19px;
-        }
-      }
-      &.name {
-        margin: 0 2px;
-        flex-grow: 1;
-      }
-      &.action {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        cursor: default;
-        .btn {
-          display: block;
-          cursor: pointer;
-          opacity: 0.5;
-          width: 22px;
-          min-width: 22px;
-          height: 22px;
-          background-repeat: no-repeat;
-          background-position: center;
-          &:hover {
-            opacity: 1;
-          }
-          &.remove {
-            background-image: url(../img/remove.svg);
-            background-size: 12px;
-          }
-          &.options {
-            background-image: url(../img/options.svg);
-            background-size: 16px;
-          }
-          &.launch {
-            background-image: url(../img/rocket.svg);
-            background-size: 16px;
-          }
-        }
-      }
+
+    input[type='text'] {
+      width: 100%;
+      height: 25px;
+      padding: 2px 4px;
+      border: 1px solid #1a73e8;
+      outline: 0;
+      background: #ffffff;
     }
-    &.group {
-      font-size: 16px;
-      border-top: 1px dashed #777;
-      &:first-child {
-        border-top: 0;
-      }
-      &.drop-target {
-        background-color: #eee;
-      }
-      .field {
-        &.name {
-          line-height: 18px;
-          input {
-            width: 100%;
-            padding: 0;
-          }
-        }
-        &.action {
-          .btn {
-            &.edit {
-              background-image: url(../img/edit.svg);
-              background-size: 16px;
-            }
-            &.save {
-              background-image: url(../img/save.svg);
-              background-size: 16px;
-            }
-          }
-        }
-      }
-    }
+  }
+}
+
+.new-group-drop {
+  display: flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 5px 5px;
+  border: 1px dashed #a6a6a6;
+  color: #666666;
+  font-size: 13px;
+
+  &::before {
+    margin-right: 5px;
+    content: '+';
+  }
+
+  &.active {
+    border-color: #1a73e8;
+    background: #e8f0fe;
+    color: #174ea6;
+  }
+}
+
+.popup-state {
+  display: flex;
+  min-height: 164px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  color: #666666;
+  text-align: center;
+}
+
+.error-state {
+  color: #b3261e;
+}
+
+.state-spinner {
+  width: 15px;
+  height: 15px;
+  animation: spin 800ms linear infinite;
+  border: 2px solid #d0d0d0;
+  border-top-color: #666666;
+  border-radius: 50%;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .state-spinner {
+    animation: none;
   }
 }

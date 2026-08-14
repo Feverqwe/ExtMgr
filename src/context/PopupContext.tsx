@@ -56,6 +56,7 @@ export interface GroupView {
   extensionIds: string[];
   isLoading: boolean;
   isChecked: boolean;
+  isIndeterminate: boolean;
 }
 
 interface MoveExtensionOptions {
@@ -450,13 +451,17 @@ export const PopupProvider = ({
   const groups = useMemo<GroupView[]>(() => {
     const toView = (id: string, name: string, computed?: string): GroupView => {
       const extensionIds = getExtensionIdsForGroup(state, id);
+      const enabledCount = extensionIds.filter(
+        (extensionId) => state.extensions[extensionId].data.enabled,
+      ).length;
       return {
         id,
         name,
         computed,
         extensionIds,
         isLoading: state.loadingGroupIds[id] ?? false,
-        isChecked: extensionIds.every((extensionId) => state.extensions[extensionId].data.enabled),
+        isChecked: enabledCount === extensionIds.length,
+        isIndeterminate: enabledCount > 0 && enabledCount < extensionIds.length,
       };
     };
 
