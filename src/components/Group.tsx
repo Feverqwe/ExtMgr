@@ -18,7 +18,7 @@ interface GroupProps {
 }
 
 const Group = ({groupId}: GroupProps) => {
-  const {groups, renameGroup, saveGroups, setGroupEnabled} = usePopup();
+  const {groups, removeGroup, renameGroup, saveGroups, setGroupEnabled} = usePopup();
   const group = groups.find(({id}) => id === groupId);
   const {isOver, setNodeRef} = useDroppable({
     id: `drop:group:${groupId}`,
@@ -69,6 +69,11 @@ const Group = ({groupId}: GroupProps) => {
 
   const handleToggle = () => {
     setGroupEnabled(group.id, !group.isChecked);
+  };
+
+  const handleRemove = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    removeGroup(group.id);
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -126,6 +131,14 @@ const Group = ({groupId}: GroupProps) => {
   if (!group.computed) {
     if (editing) {
       actions.push(
+        <button
+          type="button"
+          key="remove"
+          title={chrome.i18n.getMessage('removeGroup')}
+          aria-label={`${chrome.i18n.getMessage('removeGroup')}: ${group.name}`}
+          onClick={handleRemove}
+          className="btn remove"
+        />,
         <button
           ref={actionButton}
           type="button"

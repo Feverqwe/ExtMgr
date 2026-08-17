@@ -86,6 +86,7 @@ interface PopupContextValue {
   openExtensionOptions(id: string): Promise<void>;
   setGroupEnabled(id: string, enabled: boolean): Promise<void>;
   renameGroup(id: string, name: string): void;
+  removeGroup(id: string): void;
   saveGroups(): Promise<void>;
   moveExtension(options: MoveExtensionOptions): void;
 }
@@ -106,6 +107,7 @@ type PopupAction =
   | {type: 'setExtensionLoading'; id: string; isLoading: boolean}
   | {type: 'setGroupLoading'; id: string; isLoading: boolean}
   | {type: 'renameGroup'; id: string; name: string}
+  | {type: 'removeGroup'; id: string}
   | {type: 'moveExtension'; options: ResolvedMoveExtensionOptions};
 
 interface PopupProviderProps {
@@ -311,6 +313,8 @@ const popupReducer = (state: PopupState, action: PopupAction): PopupState => {
           group.id === action.id ? {...group, name: action.name} : group,
         ),
       };
+    case 'removeGroup':
+      return {...state, groups: state.groups.filter(({id}) => id !== action.id)};
     case 'moveExtension':
       return {...state, ...moveExtension(state, action.options)};
   }
@@ -445,6 +449,16 @@ export const PopupProvider = ({
     [commit],
   );
 
+  const removeGroup = useCallback(
+    (id: string) => {
+      const nextState = commit({type: 'removeGroup', id});
+      saveGroups(nextState.groups, nextState.computedOrder).catch((error: unknown) =>
+        console.error('[PopupContext] save groups error', error),
+      );
+    },
+    [commit, saveGroups],
+  );
+
   const moveExtensionAction = useCallback(
     (options: MoveExtensionOptions) => {
       // commit applies every action eagerly and React applies it again, so IDs must be resolved first.
@@ -537,6 +551,7 @@ export const PopupProvider = ({
       openExtensionOptions,
       setGroupEnabled,
       renameGroup,
+      removeGroup,
       saveGroups,
       moveExtension: moveExtensionAction,
     }),
@@ -546,6 +561,7 @@ export const PopupProvider = ({
       launchExtension,
       moveExtensionAction,
       openExtensionOptions,
+      removeGroup,
       renameGroup,
       saveGroups,
       setExtensionEnabled,

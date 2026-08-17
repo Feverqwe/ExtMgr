@@ -29,6 +29,9 @@
   "edit": {
     "message": "Редактировать"
   },
+  "removeGroup": {
+    "message": "Удалить группу"
+  },
   "groupName": {
     "message": "Название группы"
   },

@@ -29,6 +29,9 @@
   "edit": {
     "message": "Edit"
   },
+  "removeGroup": {
+    "message": "Delete group"
+  },
   "groupName": {
     "message": "Group name"
   },

@@ -1,5 +1,6 @@
 import {DndContext} from '@dnd-kit/core';
 import type {Meta, StoryObj} from '@storybook/react-vite';
+import {userEvent, within} from 'storybook/test';
 import {PopupProvider, type PopupInitialData} from '../context/PopupContext';
 import {createExtension, popupStoryServices} from '../stories/popupFixtures';
 import Group from './Group';
@@ -48,6 +49,7 @@ const renderGroup = (secondExtensionEnabled: boolean) => (
 const meta: Meta<typeof Group> = {
   title: 'Popup/Group',
   component: Group,
+  parameters: {layout: 'fullscreen'},
 };
 
 export default meta;
@@ -59,4 +61,11 @@ export const Enabled: Story = {
 
 export const PartiallyDisabled: Story = {
   render: () => renderGroup(false),
+};
+
+export const Editing: Story = {
+  render: () => renderGroup(true),
+  play: async ({canvasElement}) => {
+    await userEvent.click(within(canvasElement).getByRole('button', {name: 'Edit: Development'}));
+  },
 };

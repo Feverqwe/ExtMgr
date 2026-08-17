@@ -14,6 +14,7 @@ const messages: Record<string, string> = {
   move: 'Move',
   newGroup: 'New group',
   options: 'Options',
+  removeGroup: 'Delete group',
   save: 'Save',
   themeType: 'Themes',
   uninstall: 'Uninstall',

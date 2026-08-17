@@ -31,6 +31,9 @@ const collisionDetection: CollisionDetection = (args) => {
     );
 
   const pointerCollisions = pointerWithin(collisionArgs);
+  const newGroupCollisions = byKind(pointerCollisions, 'new-group');
+  if (newGroupCollisions.length) return newGroupCollisions;
+
   const extensionCollisions = byKind(pointerCollisions, 'extension');
   if (extensionCollisions.length) return extensionCollisions;
 
@@ -50,9 +53,6 @@ const collisionDetection: CollisionDetection = (args) => {
     return groupCollisions;
   }
 
-  const newGroupCollisions = byKind(pointerCollisions, 'new-group');
-  if (newGroupCollisions.length) return newGroupCollisions;
-
   return rectIntersection(collisionArgs);
 };
 
@@ -61,20 +61,21 @@ const GroupsDropzone = ({isDragging}: {isDragging: boolean}) => {
   const {isOver, setNodeRef} = useDroppable({
     id: NEW_GROUP_DROP_ID,
     data: {kind: 'new-group'},
+    disabled: !isDragging,
   });
 
   return (
     <div className="groups">
-      {groups.map((group) => (
-        <Group key={group.id} groupId={group.id} />
-      ))}
-      {/* Keep this mounted so the toolbar popup does not resize during pointer capture. */}
       <div
         ref={setNodeRef}
         className={`new-group-drop${isDragging ? ' visible' : ''}${isOver ? ' active' : ''}`}
+        aria-hidden={!isDragging}
       >
         {chrome.i18n.getMessage('newGroup')}
       </div>
+      {groups.map((group) => (
+        <Group key={group.id} groupId={group.id} />
+      ))}
     </div>
   );
 };

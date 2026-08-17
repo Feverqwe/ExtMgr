@@ -36,6 +36,7 @@ button {
 }
 
 .groups {
+  position: relative;
   max-height: 480px;
   overflow-x: hidden;
   overflow-y: auto;
@@ -302,12 +303,17 @@ button {
 }
 
 .new-group-drop {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 6px;
+  left: 0;
   display: flex;
   min-height: 36px;
   align-items: center;
   justify-content: center;
-  margin: 4px 5px 5px;
   border: 1px dashed #a6a6a6;
+  background: #ffffff;
   color: #666666;
   font-size: 13px;
   visibility: hidden;
