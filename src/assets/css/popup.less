@@ -310,6 +310,7 @@ button {
   border: 1px dashed #a6a6a6;
   color: #666666;
   font-size: 13px;
+  visibility: hidden;
 
   &::before {
     margin-right: 5px;
@@ -320,6 +321,10 @@ button {
     border-color: #1a73e8;
     background: #e8f0fe;
     color: #174ea6;
+  }
+
+  &.visible {
+    visibility: visible;
   }
 }
 

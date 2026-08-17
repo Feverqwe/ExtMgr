@@ -1,16 +1,18 @@
-import type {StoredUserGroup, UserGroupSnapshot} from './PopupContext';
+import type {ComputedGroupOrder, StoredUserGroup, UserGroupSnapshot} from './PopupContext';
 
 export interface PopupEventHandlers {
   extensionChanged(extension: chrome.management.ExtensionInfo): void;
   extensionRemoved(id: string): void;
   groupsChanged(groups: StoredUserGroup[]): void;
+  computedOrderChanged(computedOrder: ComputedGroupOrder): void;
 }
 
 export interface PopupServices {
   selfId: string;
   getExtensions(): Promise<chrome.management.ExtensionInfo[]>;
   loadGroups(): Promise<StoredUserGroup[]>;
-  saveGroups(groups: UserGroupSnapshot[]): Promise<void>;
+  loadComputedOrder(): Promise<ComputedGroupOrder>;
+  saveGroups(groups: UserGroupSnapshot[], computedOrder: ComputedGroupOrder): Promise<void>;
   setExtensionEnabled(id: string, enabled: boolean): Promise<void>;
   uninstallExtension(id: string): Promise<void>;
   launchExtension(id: string): Promise<void>;
@@ -24,7 +26,11 @@ const chromePopupServices: PopupServices = {
   },
   getExtensions: () => chrome.management.getAll(),
   loadGroups: () => chrome.storage.sync.get({list: []}).then(({list}) => list as StoredUserGroup[]),
-  saveGroups: (list) => chrome.storage.sync.set({list}),
+  loadComputedOrder: () =>
+    chrome.storage.sync
+      .get({computedOrder: {}})
+      .then(({computedOrder}) => computedOrder as ComputedGroupOrder),
+  saveGroups: (list, computedOrder) => chrome.storage.sync.set({list, computedOrder}),
   setExtensionEnabled: (id, enabled) => chrome.management.setEnabled(id, enabled),
   uninstallExtension: (id) => chrome.management.uninstall(id, {showConfirmDialog: true}),
   launchExtension: (id) => chrome.management.launchApp(id),
@@ -36,6 +42,9 @@ const chromePopupServices: PopupServices = {
     ) => {
       if (areaName === 'sync' && changes.list) {
         handlers.groupsChanged((changes.list.newValue ?? []) as StoredUserGroup[]);
+      }
+      if (areaName === 'sync' && changes.computedOrder) {
+        handlers.computedOrderChanged((changes.computedOrder.newValue ?? {}) as ComputedGroupOrder);
       }
     };
 

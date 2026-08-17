@@ -152,13 +152,8 @@ const Group = ({groupId}: GroupProps) => {
   }
 
   return (
-    <section className="group-block" aria-label={group.name}>
-      <div
-        ref={setNodeRef}
-        id={group.id}
-        className={headerClassNames.join(' ')}
-        aria-busy={group.isLoading}
-      >
+    <section ref={setNodeRef} className="group-block" aria-label={group.name}>
+      <div id={group.id} className={headerClassNames.join(' ')} aria-busy={group.isLoading}>
         <label className="field switch">
           <input
             ref={checkbox}

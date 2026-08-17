@@ -3,6 +3,7 @@ import {
   DragOverlay,
   KeyboardSensor,
   PointerSensor,
+  closestCenter,
   pointerWithin,
   rectIntersection,
   useDroppable,
@@ -21,11 +22,38 @@ import emptyIcon from '../assets/img/empty.svg';
 const NEW_GROUP_DROP_ID = 'drop:new-group';
 
 const collisionDetection: CollisionDetection = (args) => {
-  const pointerCollisions = pointerWithin(args);
-  const specificCollisions = pointerCollisions.filter(({id}) => id !== NEW_GROUP_DROP_ID);
+  const droppableContainers = args.droppableContainers.filter(({id}) => id !== args.active.id);
+  const collisionArgs = {...args, droppableContainers};
+  const byKind = (collisions: ReturnType<typeof pointerWithin>, kind: string) =>
+    collisions.filter(
+      ({id}) =>
+        droppableContainers.find((container) => container.id === id)?.data.current?.kind === kind,
+    );
 
-  if (specificCollisions.length) return specificCollisions;
-  return pointerCollisions.length ? pointerCollisions : rectIntersection(args);
+  const pointerCollisions = pointerWithin(collisionArgs);
+  const extensionCollisions = byKind(pointerCollisions, 'extension');
+  if (extensionCollisions.length) return extensionCollisions;
+
+  const groupCollisions = byKind(pointerCollisions, 'group');
+  if (groupCollisions.length) {
+    const groupId = droppableContainers.find(({id}) => id === groupCollisions[0].id)?.data.current
+      ?.groupId;
+    const groupExtensions = droppableContainers.filter(
+      (container) =>
+        container.data.current?.kind === 'extension' && container.data.current.groupId === groupId,
+    );
+    const nearestExtension = closestCenter({
+      ...collisionArgs,
+      droppableContainers: groupExtensions,
+    });
+    if (nearestExtension.length) return nearestExtension;
+    return groupCollisions;
+  }
+
+  const newGroupCollisions = byKind(pointerCollisions, 'new-group');
+  if (newGroupCollisions.length) return newGroupCollisions;
+
+  return rectIntersection(collisionArgs);
 };
 
 const GroupsDropzone = ({isDragging}: {isDragging: boolean}) => {
@@ -36,15 +64,17 @@ const GroupsDropzone = ({isDragging}: {isDragging: boolean}) => {
   });
 
   return (
-    <div ref={setNodeRef} className={`groups${isDragging ? ' drag-active' : ''}`}>
+    <div className="groups">
       {groups.map((group) => (
         <Group key={group.id} groupId={group.id} />
       ))}
-      {isDragging ? (
-        <div className={`new-group-drop${isOver ? ' active' : ''}`}>
-          {chrome.i18n.getMessage('newGroup')}
-        </div>
-      ) : null}
+      {/* Keep this mounted so the toolbar popup does not resize during pointer capture. */}
+      <div
+        ref={setNodeRef}
+        className={`new-group-drop${isDragging ? ' visible' : ''}${isOver ? ' active' : ''}`}
+      >
+        {chrome.i18n.getMessage('newGroup')}
+      </div>
     </div>
   );
 };
@@ -100,13 +130,14 @@ export const PopupView = () => {
     const overExtensionId = over.data.current?.kind === 'extension' ? String(over.id) : undefined;
     const fromIndex = fromGroup.extensionIds.indexOf(extensionId);
     const overIndex = overExtensionId ? toGroup.extensionIds.indexOf(overExtensionId) : -1;
+    const insertAfter = fromGroup.id === toGroup.id && fromIndex !== -1 && fromIndex < overIndex;
 
     moveExtension({
       extensionId,
       fromGroupId,
       toGroupId,
       overExtensionId,
-      insertAfter: fromGroup.id === toGroup.id && fromIndex !== -1 && fromIndex < overIndex,
+      insertAfter,
     });
   };
 

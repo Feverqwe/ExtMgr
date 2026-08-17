@@ -28,6 +28,7 @@ export const popupStoryServices: PopupServices = {
   selfId: 'extmgr-story',
   getExtensions: () => Promise.resolve([]),
   loadGroups: () => Promise.resolve([]),
+  loadComputedOrder: () => Promise.resolve({}),
   saveGroups: () => Promise.resolve(),
   setExtensionEnabled: () => Promise.resolve(),
   uninstallExtension: () => Promise.resolve(),

@@ -26,8 +26,11 @@ export interface StoredUserGroup extends Omit<UserGroupSnapshot, 'id'> {
   id?: string;
 }
 
+export type ComputedGroupOrder = Record<string, string[]>;
+
 export interface PopupInitialData {
   groups?: UserGroupSnapshot[];
+  computedOrder?: ComputedGroupOrder;
   extensions?: Record<string, chrome.management.ExtensionInfo>;
 }
 
@@ -39,6 +42,7 @@ interface ExtensionState {
 interface PopupState {
   status: 'idle' | 'pending' | 'done' | 'error';
   groups: UserGroupSnapshot[];
+  computedOrder: ComputedGroupOrder;
   extensions: Record<string, ExtensionState>;
   loadingGroupIds: Record<string, boolean>;
 }
@@ -68,6 +72,10 @@ interface MoveExtensionOptions {
   createNewGroup?: boolean;
 }
 
+interface ResolvedMoveExtensionOptions extends MoveExtensionOptions {
+  newGroupId?: string;
+}
+
 interface PopupContextValue {
   status: PopupState['status'];
   groups: GroupView[];
@@ -87,16 +95,18 @@ type PopupAction =
   | {
       type: 'initSuccess';
       groups: UserGroupSnapshot[];
+      computedOrder: ComputedGroupOrder;
       extensions: Record<string, ExtensionState>;
     }
   | {type: 'initError'}
   | {type: 'syncGroups'; groups: UserGroupSnapshot[]}
+  | {type: 'syncComputedOrder'; computedOrder: ComputedGroupOrder}
   | {type: 'setExtension'; extension: chrome.management.ExtensionInfo}
   | {type: 'removeExtension'; id: string}
   | {type: 'setExtensionLoading'; id: string; isLoading: boolean}
   | {type: 'setGroupLoading'; id: string; isLoading: boolean}
   | {type: 'renameGroup'; id: string; name: string}
-  | {type: 'moveExtension'; options: MoveExtensionOptions};
+  | {type: 'moveExtension'; options: ResolvedMoveExtensionOptions};
 
 interface PopupProviderProps {
   children: ReactNode;
@@ -142,6 +152,11 @@ const getDescriptionTitle = (extension: chrome.management.ExtensionInfo) => {
 const normalizeGroups = (groups: readonly StoredUserGroup[]): UserGroupSnapshot[] =>
   groups.map((group) => ({id: group.id || uuidv4(), name: group.name, ids: [...group.ids]}));
 
+const normalizeComputedOrder = (computedOrder: ComputedGroupOrder): ComputedGroupOrder =>
+  Object.fromEntries(
+    Object.entries(computedOrder).map(([computed, ids]) => [computed, [...new Set(ids)]]),
+  );
+
 const toExtensionState = (extensions: readonly chrome.management.ExtensionInfo[], selfId: string) =>
   extensions.reduce<Record<string, ExtensionState>>((result, extension) => {
     if (extension.id !== selfId) {
@@ -153,6 +168,7 @@ const toExtensionState = (extensions: readonly chrome.management.ExtensionInfo[]
 const createInitialState = (data?: PopupInitialData): PopupState => ({
   status: data ? 'done' : 'idle',
   groups: normalizeGroups(data?.groups ?? []),
+  computedOrder: normalizeComputedOrder(data?.computedOrder ?? {}),
   extensions: Object.values(data?.extensions ?? {}).reduce<Record<string, ExtensionState>>(
     (result, extension) => {
       result[extension.id] = {data: extension, isLoading: false};
@@ -163,17 +179,48 @@ const createInitialState = (data?: PopupInitialData): PopupState => ({
   loadingGroupIds: {},
 });
 
-const moveExtension = (state: PopupState, options: MoveExtensionOptions) => {
+const getComputedType = (extension: chrome.management.ExtensionInfo) =>
+  extensionTypes.includes(extension.type as (typeof extensionTypes)[number])
+    ? extension.type
+    : 'unknown';
+
+const getExtensionIdsForGroup = (state: PopupState, groupId: string) => {
+  const userGroup = state.groups.find(({id}) => id === groupId);
+  if (userGroup) return userGroup.ids.filter((id) => state.extensions[id]);
+
+  if (!groupId.startsWith('computed:')) return [];
+  const computed = groupId.slice('computed:'.length);
+  const usedIds = new Set(state.groups.flatMap(({ids}) => ids));
+  const availableIds = Object.values(state.extensions)
+    .filter(({data}) => !usedIds.has(data.id) && getComputedType(data) === computed)
+    .map(({data}) => data.id);
+  const availableIdSet = new Set(availableIds);
+  const orderedIds = state.computedOrder[computed]?.filter((id) => availableIdSet.has(id)) ?? [];
+  const orderedIdSet = new Set(orderedIds);
+
+  return [...orderedIds, ...availableIds.filter((id) => !orderedIdSet.has(id))];
+};
+
+const moveExtension = (state: PopupState, options: ResolvedMoveExtensionOptions) => {
   const groups = state.groups.map((group) => ({...group, ids: [...group.ids]}));
+  let computedOrder = state.computedOrder;
   const fromGroup = groups.find(({id}) => id === options.fromGroupId);
+  const toComputed = options.toGroupId?.startsWith('computed:')
+    ? options.toGroupId.slice('computed:'.length)
+    : undefined;
+  const extension = state.extensions[options.extensionId]?.data;
+
+  if (toComputed && (!extension || getComputedType(extension) !== toComputed)) {
+    return {groups: state.groups, computedOrder: state.computedOrder};
+  }
 
   if (fromGroup) {
     const position = fromGroup.ids.indexOf(options.extensionId);
     if (position !== -1) fromGroup.ids.splice(position, 1);
   }
 
-  if (options.createNewGroup) {
-    groups.unshift({id: uuidv4(), name: 'Group', ids: [options.extensionId]});
+  if (options.createNewGroup && options.newGroupId) {
+    groups.unshift({id: options.newGroupId, name: 'Group', ids: [options.extensionId]});
   } else if (options.toGroupId) {
     const toGroup = groups.find(({id}) => id === options.toGroupId);
     if (toGroup) {
@@ -185,17 +232,26 @@ const moveExtension = (state: PopupState, options: MoveExtensionOptions) => {
         : -1;
       const position = overPosition === -1 ? toGroup.ids.length : overPosition;
       toGroup.ids.splice(position + (options.insertAfter ? 1 : 0), 0, options.extensionId);
+    } else if (toComputed) {
+      const ids = getExtensionIdsForGroup(state, options.toGroupId).filter(
+        (id) => id !== options.extensionId,
+      );
+      const overPosition = options.overExtensionId ? ids.indexOf(options.overExtensionId) : -1;
+      const position = overPosition === -1 ? ids.length : overPosition;
+      ids.splice(position + (options.insertAfter ? 1 : 0), 0, options.extensionId);
+
+      const unresolvedIds = (state.computedOrder[toComputed] ?? []).filter(
+        (id) => !state.extensions[id] && !ids.includes(id),
+      );
+      computedOrder = {...state.computedOrder, [toComputed]: [...ids, ...unresolvedIds]};
     }
   }
 
-  if (
-    fromGroup &&
-    !fromGroup.ids.some((id) => Object.prototype.hasOwnProperty.call(state.extensions, id))
-  ) {
-    return groups.filter(({id}) => id !== fromGroup.id);
+  if (fromGroup && fromGroup.ids.length === 0) {
+    return {groups: groups.filter(({id}) => id !== fromGroup.id), computedOrder};
   }
 
-  return groups;
+  return {groups, computedOrder};
 };
 
 const popupReducer = (state: PopupState, action: PopupAction): PopupState => {
@@ -206,6 +262,7 @@ const popupReducer = (state: PopupState, action: PopupAction): PopupState => {
       return {
         status: 'done',
         groups: action.groups,
+        computedOrder: action.computedOrder,
         extensions: action.extensions,
         loadingGroupIds: {},
       };
@@ -213,6 +270,8 @@ const popupReducer = (state: PopupState, action: PopupAction): PopupState => {
       return {...state, status: 'error'};
     case 'syncGroups':
       return {...state, groups: action.groups};
+    case 'syncComputedOrder':
+      return {...state, computedOrder: action.computedOrder};
     case 'setExtension':
       return {
         ...state,
@@ -253,27 +312,8 @@ const popupReducer = (state: PopupState, action: PopupAction): PopupState => {
         ),
       };
     case 'moveExtension':
-      return {...state, groups: moveExtension(state, action.options)};
+      return {...state, ...moveExtension(state, action.options)};
   }
-};
-
-const getExtensionIdsForGroup = (state: PopupState, groupId: string) => {
-  const userGroup = state.groups.find(({id}) => id === groupId);
-  if (userGroup) return userGroup.ids.filter((id) => state.extensions[id]);
-
-  if (!groupId.startsWith('computed:')) return [];
-  const computed = groupId.slice('computed:'.length);
-  const usedIds = new Set(state.groups.flatMap(({ids}) => ids));
-
-  return Object.values(state.extensions)
-    .filter(({data}) => {
-      if (usedIds.has(data.id)) return false;
-      if (computed === 'unknown') {
-        return !extensionTypes.includes(data.type as (typeof extensionTypes)[number]);
-      }
-      return data.type === computed;
-    })
-    .map(({data}) => data.id);
 };
 
 export const PopupProvider = ({
@@ -305,12 +345,13 @@ export const PopupProvider = ({
     let unsubscribe: (() => void) | undefined;
     commit({type: 'initStart'});
 
-    Promise.all([services.loadGroups(), services.getExtensions()])
-      .then(([groups, extensions]) => {
+    Promise.all([services.loadGroups(), services.loadComputedOrder(), services.getExtensions()])
+      .then(([groups, computedOrder, extensions]) => {
         if (destroyed) return;
         commit({
           type: 'initSuccess',
           groups: normalizeGroups(groups),
+          computedOrder: normalizeComputedOrder(computedOrder),
           extensions: toExtensionState(extensions, services.selfId),
         });
 
@@ -321,6 +362,11 @@ export const PopupProvider = ({
           extensionRemoved: (id) => commit({type: 'removeExtension', id}),
           groupsChanged: (nextGroups) =>
             commit({type: 'syncGroups', groups: normalizeGroups(nextGroups)}),
+          computedOrderChanged: (nextComputedOrder) =>
+            commit({
+              type: 'syncComputedOrder',
+              computedOrder: normalizeComputedOrder(nextComputedOrder),
+            }),
         };
         unsubscribe = services.subscribe(handlers);
       })
@@ -336,11 +382,12 @@ export const PopupProvider = ({
   }, [commit, services, shouldInitialize]);
 
   const saveGroups = useCallback(
-    (groups = stateRef.current.groups) => {
-      const snapshot = groups.map((group) => ({...group, ids: [...group.ids]}));
+    (groups = stateRef.current.groups, computedOrder = stateRef.current.computedOrder) => {
+      const groupSnapshot = groups.map((group) => ({...group, ids: [...group.ids]}));
+      const computedOrderSnapshot = normalizeComputedOrder(computedOrder);
       const save = saveQueueRef.current
         .catch(() => undefined)
-        .then(() => services.saveGroups(snapshot));
+        .then(() => services.saveGroups(groupSnapshot, computedOrderSnapshot));
       saveQueueRef.current = save;
       return save;
     },
@@ -400,8 +447,10 @@ export const PopupProvider = ({
 
   const moveExtensionAction = useCallback(
     (options: MoveExtensionOptions) => {
-      const nextState = commit({type: 'moveExtension', options});
-      saveGroups(nextState.groups).catch((error: unknown) =>
+      // commit applies every action eagerly and React applies it again, so IDs must be resolved first.
+      const resolvedOptions = options.createNewGroup ? {...options, newGroupId: uuidv4()} : options;
+      const nextState = commit({type: 'moveExtension', options: resolvedOptions});
+      saveGroups(nextState.groups, nextState.computedOrder).catch((error: unknown) =>
         console.error('[PopupContext] save groups error', error),
       );
     },

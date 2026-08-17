@@ -25,6 +25,26 @@ export const BetweenGroups: Story = {
   ),
 };
 
+export const ComputedGroupInteractions: Story = {
+  render: () => (
+    <PopupProvider
+      initialData={{
+        groups: [],
+        computedOrder: {extension: ['second', 'first']},
+        extensions: {
+          first: createExtension('first', 'First Extension'),
+          second: createExtension('second', 'Second Extension'),
+          new: createExtension('new', 'New Extension'),
+        },
+      }}
+      initialize={false}
+      services={popupStoryServices}
+    >
+      <PopupView />
+    </PopupProvider>
+  ),
+};
+
 export const RichActionsAndLongNames: Story = {
   render: () => (
     <PopupProvider
