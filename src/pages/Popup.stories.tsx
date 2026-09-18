@@ -76,6 +76,26 @@ export const RichActionsAndLongNames: Story = {
   ),
 };
 
+const manyExtensions = Object.fromEntries(
+  Array.from({length: 20}, (_, index) => {
+    const number = index + 1;
+    const id = `extension-${number}`;
+    return [id, createExtension(id, `Extension ${number}`)];
+  }),
+);
+
+export const ScrollableLongList: Story = {
+  render: () => (
+    <PopupProvider
+      initialData={{groups: [], extensions: manyExtensions}}
+      initialize={false}
+      services={popupStoryServices}
+    >
+      <PopupView />
+    </PopupProvider>
+  ),
+};
+
 export const Empty: Story = {
   render: () => (
     <PopupProvider

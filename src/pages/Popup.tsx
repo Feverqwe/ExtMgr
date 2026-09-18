@@ -14,12 +14,14 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core';
 import {sortableKeyboardCoordinates} from '@dnd-kit/sortable';
-import {useState, type ReactNode} from 'react';
+import {useLayoutEffect, useRef, useState, type ReactNode} from 'react';
 import Group from '../components/Group';
 import {usePopup, type ExtensionView} from '../context/PopupContext';
 import emptyIcon from '../assets/img/empty.svg';
 
 const NEW_GROUP_DROP_ID = 'drop:new-group';
+const POPUP_MIN_HEIGHT = 164;
+const POPUP_MAX_HEIGHT = 600;
 
 const collisionDetection: CollisionDetection = (args) => {
   const droppableContainers = args.droppableContainers.filter(({id}) => id !== args.active.id);
@@ -95,11 +97,34 @@ const DragPreview = ({extension}: {extension: ExtensionView}) => (
 export const PopupView = () => {
   const {extensions, groups, moveExtension, status} = usePopup();
   const [activeExtensionId, setActiveExtensionId] = useState<string | null>(null);
+  const popupRef = useRef<HTMLElement>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {activationConstraint: {distance: 4}}),
     useSensor(KeyboardSensor, {coordinateGetter: sortableKeyboardCoordinates}),
   );
   const activeExtension = activeExtensionId ? extensions.get(activeExtensionId) : undefined;
+
+  useLayoutEffect(() => {
+    const content = popupRef.current?.firstElementChild;
+    if (!(content instanceof HTMLElement)) return;
+
+    const resizePopup = () => {
+      const height = Math.min(
+        POPUP_MAX_HEIGHT,
+        Math.max(POPUP_MIN_HEIGHT, Math.ceil(content.getBoundingClientRect().height)),
+      );
+      document.body.style.height = `${height}px`;
+    };
+
+    const resizeObserver = new ResizeObserver(resizePopup);
+    resizeObserver.observe(content);
+    resizePopup();
+
+    return () => {
+      resizeObserver.disconnect();
+      document.body.style.removeProperty('height');
+    };
+  });
 
   const handleDragStart = ({active}: DragStartEvent) => {
     const id = String(active.id);
@@ -170,7 +195,9 @@ export const PopupView = () => {
       onDragCancel={() => setActiveExtensionId(null)}
       onDragEnd={handleDragEnd}
     >
-      <main className="popup-shell">{content}</main>
+      <main ref={popupRef} className="popup-shell">
+        {content}
+      </main>
       <DragOverlay>
         {activeExtension ? (
           <div className="groups drag-overlay-groups">
