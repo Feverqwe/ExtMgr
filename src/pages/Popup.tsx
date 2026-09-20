@@ -97,7 +97,7 @@ const DragPreview = ({extension}: {extension: ExtensionView}) => (
 export const PopupView = () => {
   const {extensions, groups, moveExtension, status} = usePopup();
   const [activeExtensionId, setActiveExtensionId] = useState<string | null>(null);
-  const popupRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {activationConstraint: {distance: 4}}),
     useSensor(KeyboardSensor, {coordinateGetter: sortableKeyboardCoordinates}),
@@ -105,8 +105,8 @@ export const PopupView = () => {
   const activeExtension = activeExtensionId ? extensions.get(activeExtensionId) : undefined;
 
   useLayoutEffect(() => {
-    const content = popupRef.current?.firstElementChild;
-    if (!(content instanceof HTMLElement)) return;
+    const content = contentRef.current;
+    if (!content) return;
 
     const resizePopup = () => {
       const height = Math.min(
@@ -124,7 +124,7 @@ export const PopupView = () => {
       resizeObserver.disconnect();
       document.body.style.removeProperty('height');
     };
-  });
+  }, []);
 
   const handleDragStart = ({active}: DragStartEvent) => {
     const id = String(active.id);
@@ -195,8 +195,8 @@ export const PopupView = () => {
       onDragCancel={() => setActiveExtensionId(null)}
       onDragEnd={handleDragEnd}
     >
-      <main ref={popupRef} className="popup-shell">
-        {content}
+      <main className="popup-shell">
+        <div ref={contentRef}>{content}</div>
       </main>
       <DragOverlay>
         {activeExtension ? (
