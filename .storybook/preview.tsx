@@ -1,5 +1,6 @@
 import type {Preview} from '@storybook/react-vite';
 import '../src/assets/css/popup.less';
+import './theme-preview.less';
 
 const messages: Record<string, string> = {
   disable: 'Disable',

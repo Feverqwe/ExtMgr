@@ -25,6 +25,20 @@ export const BetweenGroups: Story = {
   ),
 };
 
+export const DarkSystemTheme: Story = {
+  render: () => (
+    <div className="theme-preview-dark">
+      <PopupProvider
+        initialData={createPopupStoryData()}
+        initialize={false}
+        services={popupStoryServices}
+      >
+        <PopupView />
+      </PopupProvider>
+    </div>
+  ),
+};
+
 export const ComputedGroupInteractions: Story = {
   render: () => (
     <PopupProvider
